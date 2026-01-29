@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Forcing dark mode colors even in light mode for the dashboard aesthetic */
+  --background: #000000;
+  --foreground: #ffffff;
+  --sidebar-bg: #111111;
+  --sidebar-hover: #1a1a1a;
+  --electric-blue: #00f2ff;
+}
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  /* This ensures the font is crisp on dark backgrounds */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Adding your electric blue glow utility here */
+  .glow-blue {
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.3), 0 0 5px rgba(0, 242, 255, 0.2);
+    border: 1px solid rgba(0, 242, 255, 0.5);
+  }
+}
