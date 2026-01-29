@@ -142,7 +142,7 @@ export default function AlliOTracker() {
                 "Build Ticketing/Registration completely",
                 "Automate Compliance Reporting workflows",
                 "Secure 2-3 Beta customers (90 days free)",
-                "Weekly 'Building in Public' LinkedIn updates"
+                "Weekly &apos;Building in Public&apos; LinkedIn updates"
               ].map((goal, i) => (
                 <div key={i} className="flex items-center gap-6 p-6 bg-black/40 rounded-[2rem] border border-zinc-800/50 group/item hover:border-[#3b82f6]/50 transition-all">
                   <div className="bg-[#3b82f6]/10 p-2 rounded-lg group-hover/item:bg-[#3b82f6] transition-colors">
@@ -293,21 +293,21 @@ export default function AlliOTracker() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in duration-500">
           <section className="bg-zinc-900/40 border border-zinc-800 p-12 rounded-[4rem]">
             <h3 className="text-[#3b82f6] font-black uppercase text-xs mb-10 tracking-[0.3em] italic flex items-center gap-3">
-              <Share2 className="w-5 h-5" /> LinkedIn "Build In Public" Strategy
+              <Share2 className="w-5 h-5" /> LinkedIn &quot;Build In Public&quot; Strategy
             </h3>
             <div className="space-y-8">
                <div className="p-8 bg-black/60 rounded-[2.5rem] border border-zinc-800 hover:border-[#3b82f6]/50 transition-all">
                   <p className="text-[#3b82f6] text-[10px] font-black uppercase tracking-widest mb-4">Content Pillar 01</p>
                   <h4 className="text-2xl font-black italic uppercase text-white mb-4">The Efficiency Story</h4>
                   <p className="text-zinc-500 text-sm italic leading-relaxed">
-                    Post specific operational wins. "We saved the Dominion track crew 4 hours of scheduling this week with AlliO's STAFFING engine."
+                    Post specific operational wins. &quot;We saved the Dominion track crew 4 hours of scheduling this week with AlliO&apos;s STAFFING engine.&quot;
                   </p>
                </div>
                <div className="p-8 bg-black/60 rounded-[2.5rem] border border-zinc-800 hover:border-[#3b82f6]/50 transition-all">
                   <p className="text-[#3b82f6] text-[10px] font-black uppercase tracking-widest mb-4">Content Pillar 02</p>
                   <h4 className="text-2xl font-black italic uppercase text-white mb-4">Industry Authority</h4>
                   <p className="text-zinc-500 text-sm italic leading-relaxed">
-                    "Excel is where venue profits go to die. Why manual scheduling is costing regional tracks $20k+ in liability risk."
+                    &quot;Excel is where venue profits go to die. Why manual scheduling is costing regional tracks $20k+ in liability risk.&quot;
                   </p>
                </div>
             </div>
@@ -362,7 +362,7 @@ export default function AlliOTracker() {
               <Trophy className="w-16 h-16 text-[#facc15] mx-auto mb-8" />
               <h3 className="text-4xl font-black italic uppercase text-white leading-none mb-6">The Exit Thesis</h3>
               <p className="text-zinc-500 text-xs italic leading-relaxed mb-10">
-                Scale to 50 active venues within 18 months. Standardize the "AlliO Protocol" for facility operations. Sell to a major conglomerate (NASCAR, SMI, or Liberty Media).
+                Scale to 50 active venues within 18 months. Standardize the &quot;AlliO Protocol&quot; for facility operations. Sell to a major conglomerate (NASCAR, SMI, or Liberty Media).
               </p>
               <div className="space-y-4">
                 <div className="bg-black/60 p-6 rounded-2xl border border-zinc-800 text-left">
@@ -380,7 +380,7 @@ export default function AlliOTracker() {
                <div>
                   <p className="text-white font-black uppercase text-xs italic">Exit Strategic</p>
                   <p className="text-zinc-600 text-[10px] font-bold italic leading-tight mt-1">
-                    "Buyers don't just buy revenue, they buy a system that works without you."
+                    &quot;Buyers don&apos;t just buy revenue, they buy a system that works without you.&quot;
                   </p>
                </div>
             </div>
