@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // Added useRouter
+import { createClient } from "@/lib/supabase/client"; // Added for Logout
 import { 
   Home, Users, Calendar, Palette, Database, 
-  Trophy, Zap, Home as House, Briefcase, Globe, CheckCircle2
+  Trophy, Zap, Home as House, Briefcase, Globe, CheckCircle2,
+  LogOut // Added icon
 } from "lucide-react";
 
 const navigation = [
-  { name: "Home", href: "/", icon: Home },
+  { name: "Home", href: "/dashboard", icon: Home }, // Changed "/" to "/dashboard" to match your route group
   { name: "Full CRM", href: "/crm", icon: Users },
   { name: "Master Calendar", href: "/calendar", icon: Calendar },
   { name: "Creative Space", href: "/creative", icon: Palette },
@@ -26,6 +28,14 @@ const opportunities = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <div className="flex h-full w-64 flex-col bg-zinc-950 border-r border-zinc-800 font-sans">
@@ -37,7 +47,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-8 px-4 mt-4 overflow-y-auto pb-10">
+      <nav className="flex-1 space-y-8 px-4 mt-4 overflow-y-auto pb-10 custom-scrollbar">
         {/* CORE TOOLS */}
         <div>
           <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-3 px-3 italic">Systems</h3>
@@ -71,12 +81,20 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      {/* FOOTER STATUS */}
-      <div className="p-4 bg-black/40 border-t border-zinc-900/50">
+      {/* FOOTER STATUS & LOGOUT */}
+      <div className="p-4 bg-black/40 border-t border-zinc-900/50 space-y-2">
         <div className="flex items-center gap-3 px-2 py-2 bg-zinc-900/30 rounded-lg border border-zinc-800/50">
           <div className="w-1.5 h-1.5 rounded-full bg-[#00f2ff] shadow-[0_0_5px_#00f2ff]" />
           <span className="text-[9px] text-zinc-500 font-black uppercase tracking-widest leading-none">All Systems Nominal</span>
         </div>
+        
+        <button 
+          onClick={handleLogout}
+          className="group flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-zinc-600 hover:text-red-500 hover:bg-red-500/5 transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="text-[10px] uppercase tracking-widest italic font-black">Terminate Session</span>
+        </button>
       </div>
     </div>
   );

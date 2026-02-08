@@ -1,6 +1,7 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "../calendar/supabase"; 
+import { createClient } from "@/lib/supabase/client"; // FIXED: Correct absolute path
 import { 
   Palette, Music, Globe, Plus, Star, Zap, ArrowLeft, Sparkles, 
   Brain, X, Trash2, Calendar, PenTool, Save, Cpu, Layout, 
@@ -10,6 +11,9 @@ import {
 import Link from "next/link";
 
 export default function CreativeSpace() {
+  // INITIALIZE SUPABASE CLIENT
+  const supabase = createClient();
+
   // --- FULFILLMENT STATE ---
   const [entries, setEntries] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,13 +48,12 @@ export default function CreativeSpace() {
         .single();
       
       if (pad) setNote(pad.content);
-      // If no note exists yet, we handle that in the save logic
       setLoading(false);
     };
     fetchData();
-  }, []);
+  }, [supabase]);
 
-  // --- 2. AUTO-SAVE LOGIC (The "Save" Button is now secondary) ---
+  // --- 2. AUTO-SAVE LOGIC ---
   const triggerSave = async (currentContent: string) => {
     setIsSaving(true);
     const { error } = await supabase
@@ -65,7 +68,6 @@ export default function CreativeSpace() {
     const val = e.target.value;
     setNote(val);
 
-    // Debounce: Wait 2 seconds after typing stops to save
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(() => {
       triggerSave(val);
@@ -95,10 +97,10 @@ export default function CreativeSpace() {
   };
 
   const categories = [
-    { name: "Art", icon: Palette, color: "#a855f7", current: entries.filter(e => e.title.includes("Art")).length },
-    { name: "Music", icon: Music, color: "#3b82f6", current: entries.filter(e => e.title.includes("Music")).length },
-    { name: "Travel", icon: Globe, color: "#22c55e", current: entries.filter(e => e.title.includes("Travel")).length },
-    { name: "Mind", icon: Brain, color: "#facc15", current: entries.filter(e => e.title.includes("Mind")).length },
+    { name: "Art", icon: Palette, color: "#a855f7", current: entries.filter(e => e.title?.includes("Art")).length },
+    { name: "Music", icon: Music, color: "#3b82f6", current: entries.filter(e => e.title?.includes("Music")).length },
+    { name: "Travel", icon: Globe, color: "#22c55e", current: entries.filter(e => e.title?.includes("Travel")).length },
+    { name: "Mind", icon: Brain, color: "#facc15", current: entries.filter(e => e.title?.includes("Mind")).length },
   ];
 
   return (
@@ -107,7 +109,7 @@ export default function CreativeSpace() {
       {/* HEADER */}
       <header className="flex flex-col lg:flex-row justify-between items-center mb-16 gap-8">
         <div className="flex items-center gap-6">
-          <Link href="/" className="p-5 bg-zinc-900/50 rounded-[1.5rem] border border-zinc-800 hover:border-[#a855f7] transition-all group backdrop-blur-md">
+          <Link href="/dashboard" className="p-5 bg-zinc-900/50 rounded-[1.5rem] border border-zinc-800 hover:border-[#a855f7] transition-all group backdrop-blur-md">
             <ArrowLeft className="w-6 h-6 text-zinc-500 group-hover:text-[#a855f7]" />
           </Link>
           <div>

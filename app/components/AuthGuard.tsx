@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { supabase } from "../calendar/supabase";
+import { supabase } from "../(dashboard)/calendar/supabase";
 import { Lock, Zap, ArrowRight } from "lucide-react";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
