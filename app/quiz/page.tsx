@@ -18,13 +18,39 @@ const DiscoveryForm = () => {
   const [viewMode, setViewMode] = useState('form');
   const [isLoading, setIsLoading] = useState(true);
 
+  // --- NEW: AUTO-SYNC PENDING AUDIT ---
+  // This triggers when a user returns to this page after logging in/signing up
+  useEffect(() => {
+    const syncPendingAudit = async () => {
+      const pending = localStorage.getItem('pending_audit_submission');
+      if (pending) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log("Detecting pending audit... Syncing to OS.");
+          const parsed = JSON.parse(pending);
+          const { error } = await supabase.from('revenue_goals').upsert([{
+            ...parsed,
+            user_id: user.id
+          }]);
+          
+          if (!error) {
+            localStorage.removeItem('pending_audit_submission');
+            localStorage.removeItem('questionnaire_progress'); // Clear temporary draft
+            localStorage.setItem('questionnaire_submitted', 'true');
+            setIsSubmitted(true);
+          }
+        }
+      }
+    };
+    syncPendingAudit();
+  }, [supabase]);
+
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
     try {
-      // Replaced window.storage with standard localStorage for the Pro Fix
       const submittedStatus = localStorage.getItem('questionnaire_submitted');
       if (submittedStatus === 'true') {
         setIsSubmitted(true);
@@ -42,7 +68,6 @@ const DiscoveryForm = () => {
 
   const loadAllResponses = async () => {
     try {
-      // In the Pro Fix, we fetch from Supabase instead of window.storage
       const { data, error } = await supabase
         .from('revenue_goals')
         .select('*')
@@ -187,32 +212,34 @@ const DiscoveryForm = () => {
     }
   };
 
+  // --- UPDATED SUBMIT LOGIC FOR OPTION A ---
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) {
-        alert("Authentication Required: Please sign in to finalize your OS.");
-        setIsLoading(false);
-        return;
-      }
-
       const submissionData = {
-        user_id: user.id,
         target_milestone: parseFloat(responses.q4?.replace(/[$,]/g, '')) || 0,
         revenue_pillars: responses.q15_streams?.map((s: any) => s.name) || [],
         raw_quiz_data: responses,
         updated_at: new Date().toISOString()
       };
 
+      if (!user) {
+        // --- SECURE IN LOCALSTORAGE & REDIRECT ---
+        localStorage.setItem('pending_audit_submission', JSON.stringify(submissionData));
+        router.push('/login?origin=quiz');
+        return;
+      }
+
       const { error } = await supabase
-      .from('revenue_goals')
-        .upsert([submissionData]);
+        .from('revenue_goals')
+        .upsert([{ ...submissionData, user_id: user.id }]);
 
       if (error) throw error;
 
       localStorage.setItem('questionnaire_submitted', 'true');
+      localStorage.removeItem('questionnaire_progress');
       setIsSubmitted(true);
       router.push('/dashboard');
 
