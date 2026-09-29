@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from '@/lib/supabase/client';
+import { asQuizResponses, focusForArea, profilePayload, QuizAreaId, rankAreas, responsesFromStorage, scoreQuiz } from '@/lib/quiz/profile';
 import { 
   Clock, Calendar, Zap, Target, Activity, 
   ChevronRight, Play, Trophy, Rocket, 
@@ -11,6 +12,23 @@ import {
   ShieldCheck, FileText, Lock, Share2, DollarSign,
   ArrowUpRight, BarChart3, Lightbulb, Star, Brain, Fingerprint
 } from "lucide-react";
+
+const OPPORTUNITY_HUBS: {
+  name: string;
+  path: string;
+  status: string;
+  task: string;
+  icon: typeof Landmark;
+  color: string;
+  areas: QuizAreaId[];
+}[] = [
+  { name: "SBA FUNDING", path: "/opportunities/sba", status: "ACTIVE", task: "20 Leads Outreach", icon: Landmark, color: "#facc15", areas: ["revenue", "pipeline"] },
+  { name: "DOMINION", path: "/opportunities/dominion", status: "ACTIVE", task: "Content Batch", icon: Trophy, color: "#3b82f6", areas: ["pipeline", "execution"] },
+  { name: "PROPERTY", path: "/opportunities/property-improvement", status: "REVENUE", task: "Trimlight Leads", icon: Construction, color: "#22c55e", areas: ["revenue"] },
+  { name: "ALLIO SAAS", path: "/opportunities/allio", status: "BETA", task: "MVP Event Logic", icon: Activity, color: "#00f2ff", areas: ["execution"] },
+  { name: "OCTANE", path: "/opportunities/octane-nation", status: "AVON GEAR", task: "Event Blast", icon: Rocket, color: "#ef4444", areas: ["pipeline"] },
+  { name: "STRATEGY", path: "/vault", status: "CORE", task: "System Review", icon: ShieldCheck, color: "#a855f7", areas: ["accountability", "capacity", "fulfillment"] },
+];
 
 export default function UltimateCommandCenter() {
   const supabase = createClient();
@@ -25,6 +43,11 @@ export default function UltimateCommandCenter() {
     totalLeads: 0,
     pipelineValue: 0 
   });
+  const [quizProfile, setQuizProfile] = useState<{
+    responses: Record<string, any>;
+    scores: ReturnType<typeof scoreQuiz>;
+    lowest: ReturnType<typeof rankAreas>;
+  } | null>(null);
 
   // --- SYSTEM CLOCK ---
   useEffect(() => {
@@ -66,6 +89,40 @@ export default function UltimateCommandCenter() {
           totalRevenue = leadsRes.data.reduce((acc, curr) => acc + (curr.deal_value || 0), 0);
         }
 
+        try {
+          const pending = localStorage.getItem('pending_audit_submission');
+          if (pending) {
+            const pendingResponses = responsesFromStorage(JSON.parse(pending));
+            const { error: pendingError } = await supabase.from('profiles').upsert(
+              profilePayload(user.id, user.email ?? null, pendingResponses),
+              { onConflict: 'user_id' }
+            );
+            if (!pendingError) {
+              localStorage.removeItem('pending_audit_submission');
+              localStorage.removeItem('questionnaire_progress');
+              localStorage.setItem('questionnaire_submitted', 'true');
+            }
+          }
+        } catch (pendingErr) {
+          console.error("QUIZ_SYNC_ERROR", pendingErr);
+        }
+
+        const profileRes = await supabase
+          .from('profiles')
+          .select('quiz_responses')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const quizResponses = asQuizResponses(profileRes.data?.quiz_responses);
+        if (!profileRes.error && quizResponses && Object.keys(quizResponses).length > 0) {
+          const scores = scoreQuiz(quizResponses);
+          setQuizProfile({
+            responses: quizResponses,
+            scores,
+            lowest: rankAreas(scores).slice(0, 3),
+          });
+        }
+
         setCrmStats({
           fulfillment: calculatedFulfillment,
           capacity: calculatedCapacity,
@@ -99,7 +156,37 @@ export default function UltimateCommandCenter() {
     return { task: "System Maintenance", stream: "SYSTEMS", path: "/vault", next: "Review Q1 Roadmap" };
   };
 
-  const live = getActiveTask();
+  const scheduled = getActiveTask();
+  const primaryFocus = quizProfile?.lowest[0];
+  const focus = primaryFocus && quizProfile ? focusForArea(primaryFocus.id, quizProfile.responses) : null;
+  const live = focus ?? scheduled;
+  const fulfillmentPct = quizProfile ? Math.round(quizProfile.scores.fulfillment * 10) : crmStats.fulfillment;
+  const capacityPct = quizProfile ? Math.round((10 - quizProfile.scores.capacity) * 10) : crmStats.capacity;
+  const lowestIds = new Set(quizProfile?.lowest.map((area) => area.id) ?? []);
+  const hubs = [...OPPORTUNITY_HUBS].sort((a, b) => {
+    const aFocus = a.areas.some((id) => lowestIds.has(id)) ? 0 : 1;
+    const bFocus = b.areas.some((id) => lowestIds.has(id)) ? 0 : 1;
+    return aFocus - bFocus;
+  });
+  const milestones = quizProfile
+    ? [
+        ...quizProfile.lowest.map((area) => ({
+          l: area.label,
+          v: focusForArea(area.id, quizProfile.responses).task,
+          target: `${area.score}/10`,
+        })),
+        {
+          l: "Start",
+          v: quizProfile.responses.q47 || "This week",
+          target: "Committed",
+        },
+      ]
+    : [
+        { l: "Monday", v: "Funding Leads", target: "100%" },
+        { l: "Wednesday", v: "AlliO MVP", target: "In Progress" },
+        { l: "Friday", v: "Rooted Pitch", target: "Pending" },
+        { l: "Sunday", v: "Review", target: "Scheduled" },
+      ];
 
   if (loading) return <div className="h-screen bg-black flex items-center justify-center"><Zap className="text-[#00f2ff] animate-pulse" /></div>;
 
@@ -114,7 +201,7 @@ export default function UltimateCommandCenter() {
           </h1>
           <div className="flex items-center gap-3 mt-4">
              <div className="bg-[#00f2ff]/10 px-3 py-1 rounded border border-[#00f2ff]/20">
-               <p className="text-[#00f2ff] font-black tracking-[0.4em] text-[9px] uppercase">24-PAGE STRATEGY EXECUTION</p>
+               <p className="text-[#00f2ff] font-black tracking-[0.4em] text-[9px] uppercase">{primaryFocus ? `Audit focus · ${primaryFocus.label}` : "24-PAGE STRATEGY EXECUTION"}</p>
              </div>
              <p className="text-zinc-600 font-bold text-[9px] uppercase">OS_VER_4.0.1</p>
           </div>
@@ -122,40 +209,45 @@ export default function UltimateCommandCenter() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-1 w-full lg:max-w-6xl">
           {/* FULFILLMENT */}
-          <div className="bg-purple-900/10 border border-purple-500/20 p-5 rounded-[2rem] hover:border-purple-500/50 transition-all">
+          <div className={`bg-purple-900/10 border border-purple-500/20 p-5 rounded-[2rem] hover:border-purple-500/50 transition-all ${lowestIds.has("fulfillment") ? "ring-1 ring-purple-400" : ""}`}>
              <div className="flex items-center gap-2 mb-2">
                <Star className="text-purple-400 w-3 h-3 fill-current" />
                <p className="text-[9px] font-black text-purple-400 tracking-widest uppercase">Fulfillment</p>
              </div>
-             <p className="text-3xl font-black tracking-tighter">{crmStats.fulfillment}%</p>
+             <p className="text-3xl font-black tracking-tighter">{fulfillmentPct}%</p>
              <div className="w-full bg-zinc-800 h-1 rounded-full mt-3 overflow-hidden">
-               <div className="bg-purple-500 h-full transition-all duration-1000" style={{ width: `${crmStats.fulfillment}%` }} />
+               <div className="bg-purple-500 h-full transition-all duration-1000" style={{ width: `${fulfillmentPct}%` }} />
              </div>
+             {quizProfile && <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2">Audit satisfaction</p>}
           </div>
 
           {/* REVENUE */}
-          <div className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem] hover:border-[#22c55e]/50 transition-all">
+          <div className={`bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem] hover:border-[#22c55e]/50 transition-all ${lowestIds.has("revenue") ? "ring-1 ring-[#facc15]" : ""}`}>
              <p className="text-[9px] font-black text-zinc-500 tracking-widest mb-1">Pipeline Value</p>
              <p className="text-3xl font-black tracking-tighter text-white">${crmStats.pipelineValue.toLocaleString()}</p>
              <div className="w-full bg-zinc-800 h-1 rounded-full mt-3 overflow-hidden">
                <div className="bg-[#22c55e] h-full" style={{ width: `${Math.min((crmStats.pipelineValue / 2100000) * 100, 100)}%` }} />
              </div>
+             {quizProfile && lowestIds.has("revenue") && (
+               <p className="text-[9px] font-black text-[#facc15] uppercase mt-2">18-mo target {quizProfile.responses.q4 || "unset"}</p>
+             )}
           </div>
 
           {/* SYSTEM STATUS */}
-          <div className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem] hover:border-[#00f2ff]/50 transition-all">
+          <div className={`bg-zinc-900/40 border p-5 rounded-[2rem] transition-all ${primaryFocus ? "border-[#facc15]/50" : "border-zinc-800 hover:border-[#00f2ff]/50"}`}>
              <p className="text-[9px] font-black text-zinc-500 tracking-widest mb-1 uppercase">System Status</p>
-             <p className="text-3xl font-black text-[#00f2ff]">NOMINAL</p>
-             <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2">All Pillars Active</p>
+             <p className={`text-3xl font-black ${primaryFocus ? "text-[#facc15]" : "text-[#00f2ff]"}`}>{primaryFocus ? primaryFocus.label : "NOMINAL"}</p>
+             <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2">{primaryFocus ? `${primaryFocus.score}/10 · lowest area` : "All Pillars Active"}</p>
           </div>
 
           {/* CAPACITY */}
-          <div className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem] hover:border-[#facc15]/50 transition-all">
+          <div className={`bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem] hover:border-[#facc15]/50 transition-all ${lowestIds.has("capacity") ? "ring-1 ring-[#facc15]" : ""}`}>
              <p className="text-[9px] font-black text-zinc-500 tracking-widest mb-1 uppercase">Capacity</p>
-             <p className="text-3xl font-black text-white">{crmStats.capacity}%</p>
+             <p className="text-3xl font-black text-white">{capacityPct}%</p>
              <div className="w-full bg-zinc-800 h-1 rounded-full mt-3 overflow-hidden">
-               <div className={`h-full transition-all duration-1000 ${crmStats.capacity > 90 ? 'bg-red-500' : 'bg-[#facc15]'}`} style={{ width: `${crmStats.capacity}%` }} />
+               <div className={`h-full transition-all duration-1000 ${capacityPct > 90 ? 'bg-red-500' : 'bg-[#facc15]'}`} style={{ width: `${capacityPct}%` }} />
              </div>
+             {quizProfile && <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2">Hour pressure</p>}
           </div>
         </div>
       </header>
@@ -172,9 +264,10 @@ export default function UltimateCommandCenter() {
               </p>
             </div>
             <div className="space-y-2">
-              <p className="text-[#00f2ff] text-xs font-black uppercase tracking-[0.2em]">{live.stream} — WEEK 1 ACTION</p>
+              <p className="text-[#00f2ff] text-xs font-black uppercase tracking-[0.2em]">{live.stream} — {focus ? "AUDIT PRIORITY" : "WEEK 1 ACTION"}</p>
               <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-tight uppercase italic">{live.task}</h2>
               <p className="text-zinc-500 text-sm md:text-lg italic font-bold max-w-3xl border-l-4 border-zinc-800 pl-6 mx-auto lg:mx-0">Coming up: {live.next}</p>
+              {focus && <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">On the clock: {scheduled.task}</p>}
             </div>
           </div>
           
@@ -197,29 +290,27 @@ export default function UltimateCommandCenter() {
 
       {/* 3. OPPORTUNITY GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { name: "SBA FUNDING", path: "/opportunities/sba", status: "ACTIVE", task: "20 Leads Outreach", icon: Landmark, color: "#facc15" },
-          { name: "DOMINION", path: "/opportunities/dominion", status: "ACTIVE", task: "Content Batch", icon: Trophy, color: "#3b82f6" },
-          { name: "PROPERTY", path: "/opportunities/property-improvement", status: "REVENUE", task: "Trimlight Leads", icon: Construction, color: "#22c55e" },
-          { name: "ALLIO SAAS", path: "/opportunities/allio", status: "BETA", task: "MVP Event Logic", icon: Activity, color: "#00f2ff" },
-          { name: "OCTANE", path: "/opportunities/octane-nation", status: "AVON GEAR", task: "Event Blast", icon: Rocket, color: "#ef4444" },
-          { name: "STRATEGY", path: "/vault", status: "CORE", task: "System Review", icon: ShieldCheck, color: "#a855f7" }
-        ].map((hub, i) => (
-          <Link key={i} href={hub.path} className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-[2.5rem] hover:border-zinc-500 transition-all group">
+        {hubs.map((hub, i) => {
+          const hubArea = hub.areas.find((id) => lowestIds.has(id));
+          const hubTask = hubArea && quizProfile ? focusForArea(hubArea, quizProfile.responses).task : hub.task;
+          const hubStatus = hubArea ? "FOCUS" : hub.status;
+          return (
+          <Link key={i} href={hub.path} className={`bg-zinc-900/30 border p-8 rounded-[2.5rem] hover:border-zinc-500 transition-all group ${hubArea ? "border-[#facc15]/40" : "border-zinc-800"}`}>
             <div className="flex justify-between items-start mb-6">
               <div className="p-4 bg-black rounded-xl border border-zinc-800 group-hover:border-zinc-700">
                 <hub.icon className="w-6 h-6" style={{ color: hub.color }} />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: hub.color }}>{hub.status}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: hubArea ? "#facc15" : hub.color }}>{hubStatus}</p>
             </div>
             <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-2">{hub.name}</h3>
-            <p className="text-[10px] text-zinc-500 font-bold italic mb-6 border-l-2 border-zinc-800 pl-4">{hub.task}</p>
+            <p className="text-[10px] text-zinc-500 font-bold italic mb-6 border-l-2 border-zinc-800 pl-4">{hubTask}</p>
             <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
               <span className="text-[9px] text-zinc-600 font-black uppercase">Launch_Node</span>
               <ChevronRight size={14} className="text-zinc-600 group-hover:translate-x-1 transition-all" />
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
 
       {/* 4. STRATEGIC MILESTONES FOOTER */}
@@ -242,12 +333,7 @@ export default function UltimateCommandCenter() {
         <div className="lg:col-span-3 bg-black/40 border border-zinc-800/50 p-8 rounded-[2.5rem]">
            <p className="text-[11px] font-black text-zinc-500 uppercase tracking-[0.4em] mb-6">Strategic Milestones</p>
            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-             {[
-               { l: "Monday", v: "Funding Leads", target: "100%" },
-               { l: "Wednesday", v: "AlliO MVP", target: "In Progress" },
-               { l: "Friday", v: "Rooted Pitch", target: "Pending" },
-               { l: "Sunday", v: "Review", target: "Scheduled" }
-             ].map((m, i) => (
+             {milestones.map((m, i) => (
                <div key={i}>
                  <p className="text-[9px] font-black text-zinc-700 uppercase italic mb-1">{m.l}</p>
                  <p className="text-sm font-black italic uppercase text-zinc-300">{m.v}</p>

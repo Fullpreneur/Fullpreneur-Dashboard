@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronRight, ChevronLeft, Check, Download, Users, 
   Brain, Terminal, Target, Zap, Activity, Fingerprint 
@@ -7,6 +7,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from "next/navigation";
 import { createClient } from '@/lib/supabase/client';
+import { profilePayload, profilesTableMissing, responsesFromStorage } from '@/lib/quiz/profile';
 
 const DiscoveryForm = () => {
   const router = useRouter();
@@ -17,33 +18,59 @@ const DiscoveryForm = () => {
   const [allResponses, setAllResponses] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState('form');
   const [isLoading, setIsLoading] = useState(true);
+  const [showRegister, setShowRegister] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [formNotice, setFormNotice] = useState("");
+  const registerRef = useRef<HTMLFormElement>(null);
+  const didSync = useRef(false);
 
-  // --- NEW: AUTO-SYNC PENDING AUDIT ---
-  // This triggers when a user returns to this page after logging in/signing up
+  const saveResponsesLocally = (data: Record<string, any>) => {
+    const serialized = JSON.stringify(data);
+    localStorage.setItem('quiz_responses', serialized);
+    localStorage.setItem('pending_audit_submission', serialized);
+    localStorage.setItem('questionnaire_progress', serialized);
+  };
+
+  const saveProfile = async (userId: string, accountEmail: string | null, data: Record<string, any>) => {
+    const { error } = await supabase.from('profiles').upsert(
+      profilePayload(userId, accountEmail, data),
+      { onConflict: 'user_id' }
+    );
+    if (error) {
+      throw new Error(
+        profilesTableMissing(error.message)
+          ? "The profiles table is missing. Run supabase-migration-profiles.sql in the Supabase SQL editor, then submit again."
+          : error.message
+      );
+    }
+  };
+
+  // Sync a finished audit after the operator confirms email and signs in.
   useEffect(() => {
+    if (didSync.current) return;
+    didSync.current = true;
+
     const syncPendingAudit = async () => {
       const pending = localStorage.getItem('pending_audit_submission');
-      if (pending) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          console.log("Detecting pending audit... Syncing to OS.");
-          const parsed = JSON.parse(pending);
-          const { error } = await supabase.from('revenue_goals').upsert([{
-            ...parsed,
-            user_id: user.id
-          }]);
-          
-          if (!error) {
-            localStorage.removeItem('pending_audit_submission');
-            localStorage.removeItem('questionnaire_progress'); // Clear temporary draft
-            localStorage.setItem('questionnaire_submitted', 'true');
-            setIsSubmitted(true);
-          }
-        }
+      if (!pending) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      try {
+        const parsed = JSON.parse(pending);
+        await saveProfile(user.id, user.email ?? null, responsesFromStorage(parsed));
+        localStorage.removeItem('pending_audit_submission');
+        localStorage.removeItem('questionnaire_progress');
+        localStorage.setItem('questionnaire_submitted', 'true');
+        router.push('/dashboard');
+      } catch (error) {
+        console.error('Pending audit sync failed', error);
       }
     };
     syncPendingAudit();
-  }, [supabase]);
+  }, [supabase, router]);
 
   useEffect(() => {
     loadData();
@@ -59,6 +86,10 @@ const DiscoveryForm = () => {
       if (savedProgress) {
         setResponses(JSON.parse(savedProgress));
       }
+      if (submittedStatus !== 'true' && localStorage.getItem('pending_audit_submission')) {
+        setShowRegister(true);
+        setCurrentSection(sections.length - 1);
+      }
       await loadAllResponses();
     } catch (error) {
       console.log('No saved data found');
@@ -69,7 +100,7 @@ const DiscoveryForm = () => {
   const loadAllResponses = async () => {
     try {
       const { data, error } = await supabase
-        .from('revenue_goals')
+        .from('profiles')
         .select('*')
         .order('updated_at', { ascending: false });
         
@@ -207,47 +238,83 @@ const DiscoveryForm = () => {
 
   const handlePrevious = () => {
     if (currentSection > 0) {
+      setShowRegister(false);
       setCurrentSection(currentSection - 1);
       window.scrollTo(0, 0);
     }
   };
 
-  // --- UPDATED SUBMIT LOGIC FOR OPTION A ---
   const handleSubmit = async () => {
-    setIsLoading(true);
+    saveResponsesLocally(responses);
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
-      const submissionData = {
-        target_milestone: parseFloat(responses.q4?.replace(/[$,]/g, '')) || 0,
-        revenue_pillars: responses.q15_streams?.map((s: any) => s.name) || [],
-        raw_quiz_data: responses,
-        updated_at: new Date().toISOString()
-      };
-
       if (!user) {
-        // --- SECURE IN LOCALSTORAGE & REDIRECT ---
-        localStorage.setItem('pending_audit_submission', JSON.stringify(submissionData));
-        router.push('/login?origin=quiz');
+        setShowRegister(true);
+        setFormNotice("");
+        setTimeout(() => registerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
         return;
       }
 
-      const { error } = await supabase
-        .from('revenue_goals')
-        .upsert([{ ...submissionData, user_id: user.id }]);
-
-      if (error) throw error;
-
+      setIsLoading(true);
+      await saveProfile(user.id, user.email ?? null, responses);
       localStorage.setItem('questionnaire_submitted', 'true');
+      localStorage.removeItem('pending_audit_submission');
       localStorage.removeItem('questionnaire_progress');
-      setIsSubmitted(true);
       router.push('/dashboard');
-
+      router.refresh();
     } catch (error: any) {
       console.error('Error submitting:', error);
       alert('Error submitting: ' + error.message);
-    } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setFormNotice("");
+    setIsRegistering(true);
+    saveResponsesLocally(responses);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+
+      let session = data.session;
+      let user = data.user;
+
+      if (user && Array.isArray(user.identities) && user.identities.length === 0) {
+        const signIn = await supabase.auth.signInWithPassword({ email, password });
+        if (signIn.error) throw new Error("An account with this email already exists. Sign in from the login page.");
+        session = signIn.data.session;
+        user = signIn.data.user;
+      }
+
+      if (!session) {
+        const signIn = await supabase.auth.signInWithPassword({ email, password });
+        if (!signIn.error && signIn.data.session) {
+          session = signIn.data.session;
+          user = signIn.data.user;
+        }
+      }
+
+      if (!user) throw new Error("Sign-up did not return an account.");
+
+      if (!session) {
+        setFormNotice("Account created. Confirm the email we sent, then sign in. Your audit stays on this device and syncs after you sign in.");
+        return;
+      }
+
+      await saveProfile(user.id, user.email ?? email, responses);
+      localStorage.setItem('questionnaire_submitted', 'true');
+      localStorage.removeItem('pending_audit_submission');
+      localStorage.removeItem('questionnaire_progress');
+      router.push('/dashboard');
+      router.refresh();
+    } catch (error: any) {
+      setFormNotice(error.message || "Could not create the account.");
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -257,7 +324,7 @@ const DiscoveryForm = () => {
     const rows: any[] = [];
     allResponses.forEach(submission => {
       const date = new Date(submission.updated_at).toLocaleString();
-      Object.entries(submission.raw_quiz_data).forEach(([key, value]) => {
+      Object.entries(submission.quiz_responses || submission.raw_quiz_data || {}).forEach(([key, value]) => {
         rows.push([date, key, typeof value === 'object' ? JSON.stringify(value) : value]);
       });
     });
@@ -402,7 +469,7 @@ const DiscoveryForm = () => {
               <div key={idx} className="bg-zinc-900/20 rounded-[2rem] p-8 border border-zinc-800">
                 <p className="text-[#00f2ff] font-black italic uppercase text-xs mb-4">Entry — {new Date(sub.updated_at).toLocaleString()}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   {Object.entries(sub.raw_quiz_data || {}).map(([k,v]: any) => (
+                   {Object.entries(sub.quiz_responses || sub.raw_quiz_data || {}).map(([k,v]: any) => (
                      <div key={k} className="p-4 bg-black/40 rounded-xl border border-zinc-800">
                         <span className="text-[10px] font-black text-zinc-600 uppercase italic mb-1 block underline">{k}</span>
                         <p className="text-white font-bold italic uppercase text-sm">{typeof v==='object'?JSON.stringify(v):v}</p>
@@ -494,13 +561,57 @@ const DiscoveryForm = () => {
           ))}
         </div>
 
+        {showRegister && (
+          <form ref={registerRef} onSubmit={handleRegister} className="mt-16 p-10 bg-zinc-900/40 border border-[#00f2ff]/30 rounded-[3rem] space-y-6">
+            <div>
+              <p className="text-[#00f2ff] font-black text-[10px] uppercase tracking-[0.4em] italic mb-3">Audit saved on this device</p>
+              <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">Create your operator account</h2>
+              <p className="text-zinc-500 font-bold italic uppercase text-sm mt-3">Register to load this audit into your dashboard.</p>
+            </div>
+            <div className="max-w-xl space-y-4">
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Operator email"
+                autoComplete="email"
+                className="w-full p-5 bg-black/50 border-2 border-zinc-800 text-white rounded-2xl focus:border-[#00f2ff] focus:outline-none font-bold text-sm"
+              />
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                autoComplete="new-password"
+                className="w-full p-5 bg-black/50 border-2 border-zinc-800 text-white rounded-2xl focus:border-[#00f2ff] focus:outline-none font-bold text-sm"
+              />
+              {formNotice && (
+                <p className="text-sm font-bold italic text-[#00f2ff] normal-case">{formNotice}</p>
+              )}
+              <button
+                type="submit"
+                disabled={isRegistering}
+                className="px-12 py-6 bg-[#00f2ff] text-black rounded-full font-black italic uppercase text-sm tracking-[0.2em] hover:shadow-[0_0_40px_rgba(0,242,255,0.4)] transition-all disabled:opacity-50"
+              >
+                {isRegistering ? "Creating account..." : "Create account"}
+              </button>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">
+                Already confirmed? <Link href="/login" className="text-[#00f2ff]">Sign in</Link>
+              </p>
+            </div>
+          </form>
+        )}
+
         {/* CONTROLS */}
         <div className="mt-20 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-white/5 pt-16">
           <button onClick={handlePrevious} disabled={currentSection === 0} className={`px-12 py-6 rounded-full font-black italic uppercase text-xs tracking-widest transition-all flex items-center gap-3 ${currentSection === 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}>
             <ChevronLeft size={18} /> Previous System
           </button>
 
-          {currentSection === sections.length - 1 ? (
+          {showRegister ? null : currentSection === sections.length - 1 ? (
             <button onClick={handleSubmit} className="px-20 py-8 bg-[#00f2ff] text-black rounded-full font-black italic uppercase text-sm tracking-[0.2em] hover:shadow-[0_0_40px_rgba(0,242,255,0.4)] transition-all flex items-center gap-3 scale-110">
               Complete Audit <Check size={20} />
             </button>
