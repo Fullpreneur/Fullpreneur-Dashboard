@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from '@/lib/supabase/client';
 import { profilePayload, profilesTableMissing, responsesFromStorage } from '@/lib/quiz/profile';
 
+const AUDIT_SAVE_NOTICE = "We couldn't save your audit to your account. Your answers are still on this device. Retry when you're ready.";
+
 const DiscoveryForm = () => {
   const router = useRouter();
   const supabase = createClient();
@@ -23,6 +25,7 @@ const DiscoveryForm = () => {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [formNotice, setFormNotice] = useState("");
+  const [canRetrySave, setCanRetrySave] = useState(false);
   const registerRef = useRef<HTMLFormElement>(null);
   const didSync = useRef(false);
 
@@ -39,10 +42,11 @@ const DiscoveryForm = () => {
       { onConflict: 'user_id' }
     );
     if (error) {
+      console.error("Profile upsert failed", error);
       throw new Error(
         profilesTableMissing(error.message)
-          ? "The profiles table is missing. Run supabase-migration-profiles.sql in the Supabase SQL editor, then submit again."
-          : error.message
+          ? "The profiles table is missing. Run supabase-migration-profiles.sql in the Supabase SQL editor, then retry. Your answers are still on this device."
+          : AUDIT_SAVE_NOTICE
       );
     }
   };
@@ -64,9 +68,14 @@ const DiscoveryForm = () => {
         localStorage.removeItem('pending_audit_submission');
         localStorage.removeItem('questionnaire_progress');
         localStorage.setItem('questionnaire_submitted', 'true');
+        setCanRetrySave(false);
+        setFormNotice("");
         router.push('/dashboard');
       } catch (error) {
         console.error('Pending audit sync failed', error);
+        didSync.current = false;
+        setCanRetrySave(true);
+        setFormNotice(AUDIT_SAVE_NOTICE);
       }
     };
     syncPendingAudit();
@@ -99,9 +108,15 @@ const DiscoveryForm = () => {
 
   const loadAllResponses = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setAllResponses([]);
+        return;
+      }
+      const { data } = await supabase
         .from('profiles')
         .select('*')
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
         
       if (data) {
@@ -261,11 +276,15 @@ const DiscoveryForm = () => {
       localStorage.setItem('questionnaire_submitted', 'true');
       localStorage.removeItem('pending_audit_submission');
       localStorage.removeItem('questionnaire_progress');
+      setCanRetrySave(false);
+      setFormNotice("");
       router.push('/dashboard');
       router.refresh();
     } catch (error: any) {
       console.error('Error submitting:', error);
-      alert('Error submitting: ' + error.message);
+      saveResponsesLocally(responses);
+      setCanRetrySave(true);
+      setFormNotice(error?.message || AUDIT_SAVE_NOTICE);
       setIsLoading(false);
     }
   };
@@ -309,10 +328,15 @@ const DiscoveryForm = () => {
       localStorage.setItem('questionnaire_submitted', 'true');
       localStorage.removeItem('pending_audit_submission');
       localStorage.removeItem('questionnaire_progress');
+      setCanRetrySave(false);
+      setFormNotice("");
       router.push('/dashboard');
       router.refresh();
     } catch (error: any) {
-      setFormNotice(error.message || "Could not create the account.");
+      saveResponsesLocally(responses);
+      const message = error?.message || "Could not create the account. Your answers are still on this device.";
+      setCanRetrySave(message === AUDIT_SAVE_NOTICE || message.includes("still on this device"));
+      setFormNotice(message);
     } finally {
       setIsRegistering(false);
     }
@@ -591,20 +615,36 @@ const DiscoveryForm = () => {
                 className="w-full p-5 bg-black/50 border-2 border-zinc-800 text-white rounded-2xl focus:border-[#00f2ff] focus:outline-none font-bold text-sm"
               />
               {formNotice && (
-                <p className="text-sm font-bold italic text-[#00f2ff] normal-case">{formNotice}</p>
+                <p className="text-sm font-bold italic text-[#facc15] normal-case">{formNotice}</p>
               )}
               <button
                 type="submit"
                 disabled={isRegistering}
                 className="px-12 py-6 bg-[#00f2ff] text-black rounded-full font-black italic uppercase text-sm tracking-[0.2em] hover:shadow-[0_0_40px_rgba(0,242,255,0.4)] transition-all disabled:opacity-50"
               >
-                {isRegistering ? "Creating account..." : "Create account"}
+                {isRegistering ? "Saving..." : canRetrySave ? "Retry save" : "Create account"}
               </button>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">
                 Already confirmed? <Link href="/login" className="text-[#00f2ff]">Sign in</Link>
               </p>
             </div>
           </form>
+        )}
+
+        {formNotice && !showRegister && (
+          <div className="mt-10 p-5 border border-[#facc15]/40 bg-[#facc15]/10 rounded-2xl">
+            <p className="text-sm font-bold italic text-[#facc15] normal-case">{formNotice}</p>
+            {canRetrySave && (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className="mt-4 px-6 py-3 bg-[#00f2ff] text-black rounded-full font-black italic uppercase text-xs tracking-widest disabled:opacity-50"
+              >
+                {isLoading ? "Retrying..." : "Retry save"}
+              </button>
+            )}
+          </div>
         )}
 
         {/* CONTROLS */}

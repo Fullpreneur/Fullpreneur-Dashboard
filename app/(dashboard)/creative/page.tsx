@@ -32,20 +32,25 @@ export default function CreativeSpace() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       // 1. Fetch Fulfillment Logs
       const { data: appts } = await supabase
         .from('appointments')
         .select('*')
+        .eq('user_id', user.id)
         .eq('pillar', 'Creative')
         .order('date', { ascending: false });
       if (appts) setEntries(appts);
 
-      // 2. Fetch Persistent Scratchpad (Targeting ID 1)
-      const { data: pad, error } = await supabase
+      const { data: pad } = await supabase
         .from('scratchpad')
         .select('content')
-        .eq('id', 1)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
       
       if (pad) setNote(pad.content);
       setLoading(false);
@@ -56,9 +61,14 @@ export default function CreativeSpace() {
   // --- 2. AUTO-SAVE LOGIC ---
   const triggerSave = async (currentContent: string) => {
     setIsSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setIsSaving(false);
+      return;
+    }
     const { error } = await supabase
       .from('scratchpad')
-      .upsert({ id: 1, content: currentContent, updated_at: new Date() });
+      .upsert({ user_id: user.id, content: currentContent, updated_at: new Date() }, { onConflict: 'user_id' });
     
     if (error) console.error("Scratchpad Save Error:", error);
     setTimeout(() => setIsSaving(false), 1000);
@@ -77,11 +87,14 @@ export default function CreativeSpace() {
   // --- 3. FULFILLMENT LOGIC ---
   const handleLogFulfillment = async (e: React.FormEvent) => {
     e.preventDefault();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     const { data } = await supabase.from('appointments').insert([{
       title: `${newEntry.category}: ${newEntry.title}`,
       pillar: "Creative",
       date: newEntry.date,
       time: "Logged",
+      user_id: user.id,
     }]).select();
 
     if (data) {
@@ -92,7 +105,9 @@ export default function CreativeSpace() {
   };
 
   const deleteEntry = async (id: number) => {
-    const { error } = await supabase.from('appointments').delete().eq('id', id);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase.from('appointments').delete().eq('id', id).eq('user_id', user.id);
     if (!error) setEntries(entries.filter(e => e.id !== id));
   };
 

@@ -10,12 +10,19 @@ import type {
   CalendarEvent,
 } from "@/lib/types/database";
 
+async function withUser() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return { supabase, userId: user?.id ?? null };
+}
+
 // Leads queries
 export async function getLeads(leadType?: LeadType, stage?: LeadStage): Promise<Lead[]> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return [];
   // Try crm_leads first, fallback to leads
   const tableName = "crm_leads";
-  let query = supabase.from(tableName).select("*").order("created_at", { ascending: false });
+  let query = supabase.from(tableName).select("*").eq("user_id", userId).order("created_at", { ascending: false });
 
   if (leadType) {
     query = query.eq("lead_type", leadType);
@@ -30,7 +37,7 @@ export async function getLeads(leadType?: LeadType, stage?: LeadStage): Promise<
   // If crm_leads doesn't exist, try leads table
   if (error && (error.code === "42P01" || error.message?.includes("does not exist"))) {
     console.log("Table 'crm_leads' not found, trying 'leads'...");
-    let fallbackQuery = supabase.from("leads").select("*").order("created_at", { ascending: false });
+    let fallbackQuery = supabase.from("leads").select("*").eq("user_id", userId).order("created_at", { ascending: false });
     
     if (leadType) {
       fallbackQuery = fallbackQuery.eq("lead_type", leadType);
@@ -59,11 +66,13 @@ export async function getLeads(leadType?: LeadType, stage?: LeadStage): Promise<
 }
 
 export async function getClosedLeadsRevenueByStream(): Promise<Record<string, number>> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return {};
   // Try crm_leads first, fallback to leads
   let { data, error } = await supabase
     .from("crm_leads")
     .select("lead_type, value")
+    .eq("user_id", userId)
     .eq("stage", "closed")
     .not("value", "is", null);
 
@@ -72,6 +81,7 @@ export async function getClosedLeadsRevenueByStream(): Promise<Record<string, nu
     const fallbackResult = await supabase
       .from("leads")
       .select("lead_type, value")
+      .eq("user_id", userId)
       .eq("stage", "closed")
       .not("value", "is", null);
     data = fallbackResult.data;
@@ -96,15 +106,17 @@ export async function getClosedLeadsRevenueByStream(): Promise<Record<string, nu
 }
 
 export async function createLead(lead: Omit<Lead, "id" | "created_at" | "updated_at">): Promise<Lead | null> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
+  const scopedLead = { ...lead, user_id: userId };
   
-  console.log("Creating lead with data:", JSON.stringify(lead, null, 2));
+  console.log("Creating lead with data:", JSON.stringify(scopedLead, null, 2));
   console.log("Attempting to insert into table: leads");
 
   // Try "crm_leads" first if that's what the user has, otherwise fallback to "leads"
   const tableName = "crm_leads"; // Changed to match user's table name
   
-  const { data, error } = await supabase.from(tableName).insert([lead]).select().single();
+  const { data, error } = await supabase.from(tableName).insert([scopedLead]).select().single();
 
   console.log("Supabase insert response:", {
     data: data ? "Success - data received" : "No data",
@@ -127,7 +139,7 @@ export async function createLead(lead: Omit<Lead, "id" | "created_at" | "updated
     // If table doesn't exist, try "leads" as fallback
     if (error.code === "42P01" || error.message?.includes("does not exist")) {
       console.log("Table 'crm_leads' not found, trying 'leads'...");
-      const fallbackResult = await supabase.from("leads").insert([lead]).select().single();
+      const fallbackResult = await supabase.from("leads").insert([scopedLead]).select().single();
       
       if (fallbackResult.error) {
         console.error("Fallback insert also failed:", fallbackResult.error);
@@ -146,12 +158,14 @@ export async function createLead(lead: Omit<Lead, "id" | "created_at" | "updated
 }
 
 export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
   // Try crm_leads first, fallback to leads
   let { data, error } = await supabase
     .from("crm_leads")
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", id)
+    .eq("user_id", userId)
     .select()
     .single();
 
@@ -161,6 +175,7 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
       .from("leads")
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", id)
+      .eq("user_id", userId)
       .select()
       .single();
     data = fallbackResult.data;
@@ -177,10 +192,12 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
 
 // North Star Action queries
 export async function getActiveNorthStarAction(): Promise<NorthStarAction | null> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
   const { data, error } = await supabase
     .from("north_star_actions")
     .select("*")
+    .eq("user_id", userId)
     .in("status", ["pending", "in_progress"])
     .order("priority", { ascending: false })
     .order("created_at", { ascending: false })
@@ -198,8 +215,9 @@ export async function getActiveNorthStarAction(): Promise<NorthStarAction | null
 export async function createNorthStarAction(
   action: Omit<NorthStarAction, "id" | "created_at" | "updated_at">
 ): Promise<NorthStarAction | null> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from("north_star_actions").insert([action]).select().single();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
+  const { data, error } = await supabase.from("north_star_actions").insert([{ ...action, user_id: userId }]).select().single();
 
   if (error) {
     console.error("Error creating north star action:", error);
@@ -211,10 +229,12 @@ export async function createNorthStarAction(
 
 // Fulfillment queries
 export async function getFulfillments(limit: number = 10): Promise<Fulfillment[]> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return [];
   const { data, error } = await supabase
     .from("fulfillments")
     .select("*")
+    .eq("user_id", userId)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -228,8 +248,9 @@ export async function getFulfillments(limit: number = 10): Promise<Fulfillment[]
 }
 
 export async function getFulfillmentStats(): Promise<Record<string, { total: number; completed: number }>> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from("fulfillments").select("category, completed");
+  const { supabase, userId } = await withUser();
+  if (!userId) return {};
+  const { data, error } = await supabase.from("fulfillments").select("category, completed").eq("user_id", userId);
 
   if (error) {
     console.error("Error fetching fulfillment stats:", error);
@@ -259,8 +280,9 @@ export async function getFulfillmentStats(): Promise<Record<string, { total: num
 export async function createFulfillment(
   fulfillment: Omit<Fulfillment, "id" | "created_at" | "updated_at">
 ): Promise<Fulfillment | null> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from("fulfillments").insert([fulfillment]).select().single();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
+  const { data, error } = await supabase.from("fulfillments").insert([{ ...fulfillment, user_id: userId }]).select().single();
 
   if (error) {
     console.error("Error creating fulfillment:", error);
@@ -272,8 +294,9 @@ export async function createFulfillment(
 
 // Dashboard Schedule (Daily Tasks) queries
 export async function getDashboardTasks(date?: string): Promise<DashboardTask[]> {
-  const supabase = createClient();
-  let query = supabase.from("dashboard_schedule").select("*").order("created_at", { ascending: true });
+  const { supabase, userId } = await withUser();
+  if (!userId) return [];
+  let query = supabase.from("dashboard_schedule").select("*").eq("user_id", userId).order("created_at", { ascending: true });
 
   if (date) {
     query = query.eq("date", date);
@@ -296,8 +319,9 @@ export async function getDashboardTasks(date?: string): Promise<DashboardTask[]>
 export async function createDashboardTask(
   task: Omit<DashboardTask, "id" | "created_at" | "updated_at">
 ): Promise<DashboardTask | null> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from("dashboard_schedule").insert([task]).select().single();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
+  const { data, error } = await supabase.from("dashboard_schedule").insert([{ ...task, user_id: userId }]).select().single();
 
   if (error) {
     console.error("Error creating dashboard task:", error);
@@ -311,11 +335,13 @@ export async function updateDashboardTask(
   id: string,
   updates: Partial<DashboardTask>
 ): Promise<DashboardTask | null> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
   const { data, error } = await supabase
     .from("dashboard_schedule")
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", id)
+    .eq("user_id", userId)
     .select()
     .single();
 
@@ -329,8 +355,9 @@ export async function updateDashboardTask(
 
 // Revenue Streams queries
 export async function getRevenueStreams(month?: string): Promise<RevenueStream[]> {
-  const supabase = createClient();
-  let query = supabase.from("revenue_streams").select("*");
+  const { supabase, userId } = await withUser();
+  if (!userId) return [];
+  let query = supabase.from("revenue_streams").select("*").eq("user_id", userId);
 
   if (month) {
     query = query.eq("month", month);
@@ -354,11 +381,13 @@ export async function updateRevenueStream(
   id: string,
   updates: Partial<RevenueStream>
 ): Promise<RevenueStream | null> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
   const { data, error } = await supabase
     .from("revenue_streams")
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", id)
+    .eq("user_id", userId)
     .select()
     .single();
 
@@ -372,10 +401,12 @@ export async function updateRevenueStream(
 
 // Calendar Events queries
 export async function getWeeklyCalendarEvents(startDate: string, endDate: string): Promise<CalendarEvent[]> {
-  const supabase = createClient();
+  const { supabase, userId } = await withUser();
+  if (!userId) return [];
   const { data, error } = await supabase
     .from("calendar_events")
     .select("*")
+    .eq("user_id", userId)
     .gte("date", startDate)
     .lte("date", endDate)
     .order("date", { ascending: true })
@@ -392,8 +423,9 @@ export async function getWeeklyCalendarEvents(startDate: string, endDate: string
 export async function createCalendarEvent(
   event: Omit<CalendarEvent, "id" | "created_at" | "updated_at">
 ): Promise<CalendarEvent | null> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from("calendar_events").insert([event]).select().single();
+  const { supabase, userId } = await withUser();
+  if (!userId) return null;
+  const { data, error } = await supabase.from("calendar_events").insert([{ ...event, user_id: userId }]).select().single();
 
   if (error) {
     console.error("Error creating calendar event:", error);

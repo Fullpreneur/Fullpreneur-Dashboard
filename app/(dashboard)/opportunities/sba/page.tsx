@@ -11,30 +11,17 @@ import Link from "next/link";
 
 export default function SBAManager() {
   // --- 1. DATA STATE: THE CRM CORE ---
-  const [leads, setLeads] = useState([
-    { 
-      id: 1, 
-      name: "Dominion Vendor A", 
-      contact: "Mike Smith", 
-      email: "mike@vendor.com", 
-      phone: "555-0199", 
-      amount: "$250,000", 
-      status: "Queue", 
-      narrative: "Strong assets, low debt-to-income.",
-      score: 85 
-    },
-    { 
-      id: 2, 
-      name: "Apex Landscaping", 
-      contact: "Sarah Chen", 
-      email: "sarah@apex.com", 
-      phone: "555-0244", 
-      amount: "$450,000", 
-      status: "Active", 
-      narrative: "Seasonal revenue peaks, high equipment equity.",
-      score: 72 
-    }
-  ]);
+  const [leads, setLeads] = useState<{
+    id: number;
+    name: string;
+    contact: string;
+    email: string;
+    phone: string;
+    amount: string;
+    status: string;
+    narrative: string;
+    score: number;
+  }[]>([]);
 
   // --- 2. UI STATE ---
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -32,15 +32,27 @@ export default function LeadVault() {
   // --- 3. THE ENGINE ---
   useEffect(() => { fetchLeads(); }, []);
 
+  async function currentUserId() {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id ?? null;
+  }
+
   async function fetchLeads() {
-    const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    const userId = await currentUserId();
+    if (!userId) return;
+    const { data, error } = await supabase.from('leads').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (!error && data) setLeads(data);
   }
 
   async function handleAddLead(e: React.FormEvent) {
     e.preventDefault();
     setIsSaving(true);
-    const { data, error } = await supabase.from('leads').insert([newLead]).select();
+    const userId = await currentUserId();
+    if (!userId) {
+      setIsSaving(false);
+      return;
+    }
+    const { data, error } = await supabase.from('leads').insert([{ ...newLead, user_id: userId }]).select();
     if (!error && data) {
       setLeads([data[0], ...leads]);
       setIsModalOpen(false);
@@ -50,7 +62,9 @@ export default function LeadVault() {
   }
 
   async function updateStatus(id: number, status: string) {
-    const { error } = await supabase.from('leads').update({ status }).eq('id', id);
+    const userId = await currentUserId();
+    if (!userId) return;
+    const { error } = await supabase.from('leads').update({ status }).eq('id', id).eq('user_id', userId);
     if (!error) {
       setLeads(leads.map(l => l.id === id ? { ...l, status } : l));
       if (selectedLead?.id === id) setSelectedLead({ ...selectedLead, status });
@@ -59,11 +73,14 @@ export default function LeadVault() {
 
   async function handleScheduleDiscovery(e: React.FormEvent) {
     e.preventDefault();
+    const userId = await currentUserId();
+    if (!userId) return;
     const { error } = await supabase.from('events').insert([{
       title: `DISCOVERY: ${selectedLead.full_name} | ${newEvent.title}`,
       start_date: newEvent.start_date,
       description: `Lead: ${selectedLead.full_name}\nEmail: ${selectedLead.email}\nService: ${selectedLead.service_interest}\nAddress: ${selectedLead.address}`,
-      pillar: selectedLead.pillar
+      pillar: selectedLead.pillar,
+      user_id: userId
     }]);
 
     if (!error) {

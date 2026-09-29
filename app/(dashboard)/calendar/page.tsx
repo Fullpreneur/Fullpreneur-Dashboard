@@ -26,8 +26,15 @@ export default function MasterCalendar() {
     fetchAppointments();
   }, []);
 
+  const currentUserId = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id ?? null;
+  };
+
   const fetchAppointments = async () => {
-    const { data, error } = await supabase.from('appointments').select('*');
+    const userId = await currentUserId();
+    if (!userId) return;
+    const { data, error } = await supabase.from('appointments').select('*').eq('user_id', userId);
     if (!error && data) setAppointments(data);
   };
 
@@ -65,17 +72,21 @@ export default function MasterCalendar() {
     e.preventDefault();
     const formattedDate = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(formState.day).padStart(2, '0')}`;
     
+    const userId = await currentUserId();
+    if (!userId) return;
+
     const payload = { 
       title: formState.title, 
       time: formState.time, 
       pillar: formState.pillar, 
       date: formattedDate,
       contact: formState.contact,
-      is_lead: formState.is_lead 
+      is_lead: formState.is_lead,
+      user_id: userId
     };
 
     if (editingId) {
-      const { error } = await supabase.from('appointments').update(payload).eq('id', editingId);
+      const { error } = await supabase.from('appointments').update(payload).eq('id', editingId).eq('user_id', userId);
       if (!error) {
         setAppointments(prev => prev.map(a => a.id === editingId ? { ...a, ...payload } : a));
       }
@@ -87,7 +98,9 @@ export default function MasterCalendar() {
   };
 
   const handleDelete = async (id: number) => {
-    const { error } = await supabase.from('appointments').delete().eq('id', id);
+    const userId = await currentUserId();
+    if (!userId) return;
+    const { error } = await supabase.from('appointments').delete().eq('id', id).eq('user_id', userId);
     if (!error) {
       setAppointments(prev => prev.filter(a => a.id !== id));
       setIsModalOpen(false);

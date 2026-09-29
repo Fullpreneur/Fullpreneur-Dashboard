@@ -48,6 +48,8 @@ export default function UltimateCommandCenter() {
     scores: ReturnType<typeof scoreQuiz>;
     lowest: ReturnType<typeof rankAreas>;
   } | null>(null);
+  const [operator, setOperator] = useState<{ id: string; email: string | null } | null>(null);
+  const [hasPendingAudit, setHasPendingAudit] = useState(false);
 
   // --- SYSTEM CLOCK ---
   useEffect(() => {
@@ -61,11 +63,12 @@ export default function UltimateCommandCenter() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        setOperator({ id: user.id, email: user.email ?? null });
 
         // Fetch both Appointments (Fulfillment/Capacity) and Leads (Revenue)
         const [apptsRes, leadsRes] = await Promise.all([
-          supabase.from('appointments').select('pillar'),
-          supabase.from('crm_leads').select('deal_value, pillar_tag')
+          supabase.from('appointments').select('pillar').eq('user_id', user.id),
+          supabase.from('crm_leads').select('deal_value, pillar_tag').eq('user_id', user.id)
         ]);
 
         let calculatedFulfillment = 0;
@@ -89,6 +92,7 @@ export default function UltimateCommandCenter() {
           totalRevenue = leadsRes.data.reduce((acc, curr) => acc + (curr.deal_value || 0), 0);
         }
 
+        let pendingLeft = false;
         try {
           const pending = localStorage.getItem('pending_audit_submission');
           if (pending) {
@@ -101,11 +105,16 @@ export default function UltimateCommandCenter() {
               localStorage.removeItem('pending_audit_submission');
               localStorage.removeItem('questionnaire_progress');
               localStorage.setItem('questionnaire_submitted', 'true');
+            } else {
+              pendingLeft = true;
+              console.error("QUIZ_SYNC_ERROR", pendingError);
             }
           }
         } catch (pendingErr) {
+          pendingLeft = true;
           console.error("QUIZ_SYNC_ERROR", pendingErr);
         }
+        setHasPendingAudit(pendingLeft);
 
         const profileRes = await supabase
           .from('profiles')
@@ -139,29 +148,18 @@ export default function UltimateCommandCenter() {
     syncSystemData();
   }, [supabase]);
 
-  // --- LIVE TASK LOGIC (Your Original Schedule) ---
-  const getActiveTask = () => {
-    const day = currentTime.getDay(); 
-    const hour = currentTime.getHours();
-    
-    // Logic for Mon, Tue, Wed, Sun as per your original file
-    if (day === 1) { // Monday
-      if (hour >= 8 && hour < 11) return { task: "Dominion Content Batching", stream: "DOMINION", path: "/opportunities/dominion", next: "Landscaping Ops @ 11AM" };
-      if (hour >= 11 && hour < 13) return { task: "Service Landscaping Clients", stream: "LANDSCAPING", path: "/opportunities/property-improvement", next: "Funding Apps @ 1PM" };
-      if (hour >= 13 && hour < 16) return { task: "SBA 7(a) Applications", stream: "BUSINESS FUNDING", path: "/opportunities/sba", next: "Trimlight Review @ 7PM" };
-    }
-    if (day === 3) { // Wednesday
-      if (hour >= 16 && hour < 21) return { task: "AlliO MVP Development", stream: "ALLIO SAAS", path: "/opportunities/allio", next: "Beta Outreach @ 8PM" };
-    }
-    return { task: "System Maintenance", stream: "SYSTEMS", path: "/vault", next: "Review Q1 Roadmap" };
-  };
-
-  const scheduled = getActiveTask();
   const primaryFocus = quizProfile?.lowest[0];
   const focus = primaryFocus && quizProfile ? focusForArea(primaryFocus.id, quizProfile.responses) : null;
-  const live = focus ?? scheduled;
-  const fulfillmentPct = quizProfile ? Math.round(quizProfile.scores.fulfillment * 10) : crmStats.fulfillment;
-  const capacityPct = quizProfile ? Math.round((10 - quizProfile.scores.capacity) * 10) : crmStats.capacity;
+  const live = focus ?? {
+    task: "Review your audit",
+    stream: "SYSTEMS",
+    path: "/quiz",
+    next: "Open the audit to refresh this command center",
+  };
+  const fulfillmentPct = quizProfile ? Math.round(quizProfile.scores.fulfillment * 10) : 0;
+  const capacityPct = quizProfile ? Math.round((10 - quizProfile.scores.capacity) * 10) : 0;
+  const revenueTarget = quizProfile ? parseFloat(String(quizProfile.responses.q4 ?? "").replace(/[$,]/g, "")) : 0;
+  const revenueWidth = revenueTarget > 0 ? Math.min((crmStats.pipelineValue / revenueTarget) * 100, 100) : 0;
   const lowestIds = new Set(quizProfile?.lowest.map((area) => area.id) ?? []);
   const hubs = [...OPPORTUNITY_HUBS].sort((a, b) => {
     const aFocus = a.areas.some((id) => lowestIds.has(id)) ? 0 : 1;
@@ -181,14 +179,52 @@ export default function UltimateCommandCenter() {
           target: "Committed",
         },
       ]
-    : [
-        { l: "Monday", v: "Funding Leads", target: "100%" },
-        { l: "Wednesday", v: "AlliO MVP", target: "In Progress" },
-        { l: "Friday", v: "Rooted Pitch", target: "Pending" },
-        { l: "Sunday", v: "Review", target: "Scheduled" },
-      ];
+    : [];
 
   if (loading) return <div className="h-screen bg-black flex items-center justify-center"><Zap className="text-[#00f2ff] animate-pulse" /></div>;
+
+  if (!quizProfile) {
+    return (
+      <div className="p-4 sm:p-6 md:p-10 bg-[#050505] min-h-full w-full min-w-0 overflow-x-hidden text-white font-sans">
+        <div className="max-w-3xl w-full min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#00f2ff]">Account {operator?.id ?? "unsigned"}</p>
+          <h1 className="mt-4 text-3xl sm:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter leading-none break-words">
+            CONTROL <span className="text-zinc-800">CENTER</span>
+          </h1>
+          <p className="mt-6 text-zinc-400 font-bold italic uppercase text-sm sm:text-base leading-relaxed max-w-xl">
+            No audit is saved for this account yet. This space stays empty until your own results are on file.
+          </p>
+          {hasPendingAudit && (
+            <p className="mt-4 text-[#facc15] font-bold italic text-sm max-w-xl">
+              An audit is still saved on this device. Open it and retry the save. Nothing was discarded.
+            </p>
+          )}
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem]">
+              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Leads</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">{crmStats.totalLeads}</p>
+            </div>
+            <div className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem]">
+              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Pipeline</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">${crmStats.pipelineValue.toLocaleString()}</p>
+            </div>
+            <div className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem]">
+              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Status</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#00f2ff] truncate">Awaiting audit</p>
+            </div>
+          </div>
+          <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <Link href="/quiz" className="inline-flex items-center justify-center px-8 py-4 bg-[#00f2ff] text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em]">
+              {hasPendingAudit ? "Retry audit save" : "Take the audit"}
+            </Link>
+            <Link href="/quiz" className="inline-flex items-center justify-center px-8 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em]">
+              Re-take the audit
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-[#050505] min-h-full w-full min-w-0 overflow-x-hidden text-white font-sans uppercase italic selection:bg-[#00f2ff]/30">
@@ -226,7 +262,7 @@ export default function UltimateCommandCenter() {
              <p className="text-[9px] font-black text-zinc-500 tracking-widest mb-1">Pipeline Value</p>
              <p className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter text-white truncate">${crmStats.pipelineValue.toLocaleString()}</p>
              <div className="w-full bg-zinc-800 h-1 rounded-full mt-3 overflow-hidden">
-               <div className="bg-[#22c55e] h-full" style={{ width: `${Math.min((crmStats.pipelineValue / 2100000) * 100, 100)}%` }} />
+               <div className="bg-[#22c55e] h-full" style={{ width: `${revenueWidth}%` }} />
              </div>
              {quizProfile && lowestIds.has("revenue") && (
                <p className="text-[9px] font-black text-[#facc15] uppercase mt-2">18-mo target {quizProfile.responses.q4 || "unset"}</p>
@@ -264,10 +300,9 @@ export default function UltimateCommandCenter() {
               </p>
             </div>
             <div className="space-y-2">
-              <p className="text-[#00f2ff] text-xs font-black uppercase tracking-[0.2em]">{live.stream} — {focus ? "AUDIT PRIORITY" : "WEEK 1 ACTION"}</p>
+              <p className="text-[#00f2ff] text-xs font-black uppercase tracking-[0.2em]">{live.stream} — AUDIT PRIORITY</p>
               <h2 className="text-3xl sm:text-5xl lg:text-7xl font-black tracking-tighter leading-tight uppercase italic break-words">{live.task}</h2>
-              <p className="text-zinc-500 text-sm md:text-lg italic font-bold max-w-3xl border-l-4 border-zinc-800 pl-6 mx-auto lg:mx-0">Coming up: {live.next}</p>
-              {focus && <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">On the clock: {scheduled.task}</p>}
+              <p className="text-zinc-500 text-sm md:text-lg italic font-bold max-w-3xl border-l-4 border-zinc-800 pl-6 mx-auto lg:mx-0 break-words">Coming up: {live.next}</p>
             </div>
           </div>
           
@@ -292,7 +327,7 @@ export default function UltimateCommandCenter() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full min-w-0">
         {hubs.map((hub, i) => {
           const hubArea = hub.areas.find((id) => lowestIds.has(id));
-          const hubTask = hubArea && quizProfile ? focusForArea(hubArea, quizProfile.responses).task : hub.task;
+          const hubTask = hubArea ? focusForArea(hubArea, quizProfile.responses).task : hub.task;
           const hubStatus = hubArea ? "FOCUS" : hub.status;
           return (
           <Link key={i} href={hub.path} className={`w-full min-w-0 bg-zinc-900/30 border p-6 sm:p-8 rounded-[2.5rem] hover:border-zinc-500 transition-all group ${hubArea ? "border-[#facc15]/40" : "border-zinc-800"}`}>
