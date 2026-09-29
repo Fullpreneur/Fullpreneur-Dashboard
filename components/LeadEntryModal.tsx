@@ -180,7 +180,7 @@ export default function LeadEntryModal({ isOpen, onClose, onSave }: LeadEntryMod
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-end">
-      <div className="bg-white dark:bg-gray-800 w-full max-w-2xl h-full shadow-xl overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 w-full min-w-0 max-w-2xl h-full shadow-xl overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Add New Lead</h2>
           <button
@@ -191,7 +191,7 @@ export default function LeadEntryModal({ isOpen, onClose, onSave }: LeadEntryMod
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 w-full min-w-0">
           {/* Lead Type Selection */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -213,7 +213,7 @@ export default function LeadEntryModal({ isOpen, onClose, onSave }: LeadEntryMod
           </div>
 
           {/* Basic Information */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
             <div>
               <label className="block text-sm font-medium mb-2">
                 Name <span className="text-red-500">*</span>
@@ -237,7 +237,7 @@ export default function LeadEntryModal({ isOpen, onClose, onSave }: LeadEntryMod
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
             <div>
               <label className="block text-sm font-medium mb-2">
                 Email <span className="text-red-500">*</span>
@@ -264,7 +264,7 @@ export default function LeadEntryModal({ isOpen, onClose, onSave }: LeadEntryMod
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
             <div>
               <label className="block text-sm font-medium mb-2">
                 Stage <span className="text-red-500">*</span>
@@ -297,7 +297,7 @@ export default function LeadEntryModal({ isOpen, onClose, onSave }: LeadEntryMod
           {isSBALead && (
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
               <h3 className="font-semibold mb-3">SBA Loan Details</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
                 <div>
                   <label className="block text-sm font-medium mb-2">Loan Amount ($)</label>
                   <input
@@ -410,7 +410,7 @@ export default function LeadEntryModal({ isOpen, onClose, onSave }: LeadEntryMod
           </div>
 
           {/* Form Actions */}
-          <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 -mx-6 -mb-6 mt-6 flex gap-3">
+          <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 mt-6 flex gap-3">
             <button
               type="button"
               onClick={onClose}

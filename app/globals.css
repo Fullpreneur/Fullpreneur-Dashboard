@@ -20,6 +20,25 @@ body {
 }
 
 @layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #3f3f46 transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 9999px;
+  }
+
   .text-balance {
     text-wrap: balance;
   }

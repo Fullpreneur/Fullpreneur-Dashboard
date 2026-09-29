@@ -47,21 +47,21 @@ export default function DominionCommand() {
   if (!isMounted) return <div className="bg-black min-h-screen" />;
 
   return (
-    <div className="p-10 space-y-8 bg-black min-h-screen text-white font-sans">
-      <header className="flex justify-between items-end border-b border-zinc-800 pb-8">
-        <div>
-          <h1 className="text-6xl font-black tracking-tighter uppercase italic text-glow text-white">Dominion Raceway</h1>
+    <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-black min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-zinc-800 pb-8 w-full min-w-0">
+        <div className="w-full min-w-0">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tighter uppercase italic text-glow text-white break-words">Dominion Raceway</h1>
           <p className="text-[#facc15] font-bold tracking-[0.3em] text-xs mt-2 uppercase italic">Tuesday Week 2 Execution</p>
         </div>
       </header>
 
       {/* TABS */}
-      <div className="flex gap-4 border-b border-zinc-900 pb-4">
+      <div className="flex gap-4 border-b border-zinc-900 pb-4 overflow-x-auto custom-scrollbar w-full min-w-0">
         {["negotiation", "duty-tracker", "execution-pulse", "leads"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`shrink-0 whitespace-nowrap px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
               activeTab === tab ? "bg-[#facc15] text-black shadow-[0_0_20px_rgba(250,204,21,0.4)]" : "bg-zinc-900 text-zinc-500"
             }`}
           >
@@ -203,7 +203,7 @@ export default function DominionCommand() {
           <div className="bg-[#facc15]/5 border border-[#facc15]/20 p-8 rounded-3xl flex flex-col justify-center text-center">
              <Target className="w-8 h-8 text-[#facc15] mx-auto mb-4" />
              <h3 className="text-[#facc15] font-black uppercase text-xs">Capacity Target</h3>
-             <p className="text-6xl font-black text-white italic underline">30 HR</p>
+             <p className="text-xl sm:text-2xl lg:text-3xl font-black text-white italic underline truncate">30 HR</p>
              <p className="text-[10px] text-zinc-500 uppercase font-bold mt-4 tracking-widest italic">Weekly Manual Work Limit</p>
           </div>
         </div>

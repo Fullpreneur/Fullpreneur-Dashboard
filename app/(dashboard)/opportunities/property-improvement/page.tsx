@@ -100,11 +100,11 @@ export default function PropertyImprovementHub() {
   if (!isMounted) return <div className="bg-black min-h-screen" />;
 
   return (
-    <div className="p-10 space-y-8 bg-black min-h-screen text-white font-sans">
+    <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-black min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans">
       {/* ----------------- HEADER ----------------- */}
-      <header className="flex justify-between items-end border-b border-zinc-800 pb-12">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 border-b border-zinc-800 pb-12 w-full min-w-0">
         <div>
-          <h1 className="text-7xl font-black tracking-tighter uppercase italic text-white leading-none">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-black tracking-tighter uppercase italic text-white leading-none break-words">
             Property <span className="text-zinc-600">Improvements</span>
           </h1>
           <div className="flex items-center gap-4 mt-4">
@@ -129,7 +129,7 @@ export default function PropertyImprovementHub() {
       </header>
 
       {/* ----------------- NAVIGATION ----------------- */}
-      <nav className="flex gap-4 border-b border-zinc-900 pb-6 overflow-x-auto no-scrollbar">
+      <nav className="flex gap-4 border-b border-zinc-900 pb-6 overflow-x-auto custom-scrollbar w-full min-w-0">
         {[
           { id: "crm", label: "Opportunity Tracker", icon: Users, color: "#facc15" },
           { id: "properties", label: "Customer Ledger", icon: Home, color: "#facc15" },
@@ -345,7 +345,7 @@ export default function PropertyImprovementHub() {
                 { t: "05. Multi-Stream Revenue", d: "Direct Sales (Trimlight) + Referral Fees (10-15% on high-ticket) + SaaS Membership fees." }
               ].map((step, i) => (
                 <div key={i} className="flex gap-8 group">
-                  <span className="text-6xl font-black text-zinc-800 group-hover:text-[#22c55e] transition-colors leading-none">
+                  <span className="text-3xl sm:text-5xl lg:text-6xl font-black text-zinc-800 group-hover:text-[#22c55e] transition-colors leading-none">
                     {i+1}
                   </span>
                   <div>
@@ -360,10 +360,10 @@ export default function PropertyImprovementHub() {
           <div className="space-y-8">
             <div className="bg-[#22c55e]/5 border border-[#22c55e]/20 p-12 rounded-[4rem]">
               <h3 className="text-[#22c55e] font-black uppercase text-[10px] tracking-widest mb-6">Market Positioning</h3>
-              <p className="text-4xl font-black italic text-white leading-[1.1] uppercase mb-8">
+              <p className="text-2xl sm:text-3xl lg:text-4xl font-black italic text-white leading-[1.1] uppercase mb-8 break-words">
                 "Brandon Fuller - <span className="text-[#22c55e]">Founder's Choice</span> Partner & Property Improvement Specialist"
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0">
                 {[
                   { l: "Discount", v: "10-15% Off" },
                   { l: "Priority", v: "Top of List" },
@@ -400,10 +400,10 @@ export default function PropertyImprovementHub() {
             </h2>
             <div className="space-y-6">
               <div className="p-8 bg-black/60 border border-zinc-800 rounded-[2.5rem] group hover:border-[#22c55e]/50 transition-all">
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-2xl font-black text-white italic uppercase">Standard</h4>
+                <div className="flex flex-wrap justify-between items-center gap-3 mb-4 min-w-0">
+                  <h4 className="text-xl sm:text-2xl font-black text-white italic uppercase break-words">Standard</h4>
                   <div className="text-right">
-                    <p className="text-3xl font-black text-[#22c55e]">$9.99</p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#22c55e] truncate">$9.99</p>
                     <p className="text-[10px] text-zinc-600 font-black uppercase">Per Month</p>
                   </div>
                 </div>
@@ -415,10 +415,10 @@ export default function PropertyImprovementHub() {
 
               <div className="p-10 bg-[#22c55e]/5 border border-[#22c55e]/30 rounded-[3rem] relative shadow-[0_30px_60px_rgba(34,197,94,0.1)]">
                 <div className="absolute -top-4 left-10 bg-[#22c55e] text-black text-[9px] font-black px-4 py-1 rounded-full uppercase tracking-widest">Most Valuable</div>
-                <div className="flex justify-between items-center mb-6">
-                  <h4 className="text-3xl font-black text-white italic uppercase leading-none">Premium</h4>
+                <div className="flex flex-wrap justify-between items-center gap-3 mb-6 min-w-0">
+                  <h4 className="text-2xl sm:text-3xl font-black text-white italic uppercase leading-none break-words">Premium</h4>
                   <div className="text-right">
-                    <p className="text-4xl font-black text-white">$19.99</p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-black text-white truncate">$19.99</p>
                     <p className="text-[10px] text-zinc-400 font-black uppercase">Per Month</p>
                   </div>
                 </div>
@@ -439,7 +439,7 @@ export default function PropertyImprovementHub() {
               <div className="bg-black/60 p-8 rounded-[2.5rem] border border-zinc-800">
                 <p className="text-[#22c55e] text-[10px] font-black uppercase tracking-widest mb-6 border-b border-zinc-900 pb-4">High-Ticket Referral Model</p>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-4xl font-black text-white italic uppercase tracking-tighter">10-15%</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-white italic uppercase tracking-tighter truncate">10-15%</p>
                   <p className="text-right text-xs text-zinc-500 font-black uppercase leading-tight">Project<br/>Value</p>
                 </div>
                 <p className="text-[10px] text-zinc-500 italic leading-relaxed mt-4">
@@ -450,7 +450,7 @@ export default function PropertyImprovementHub() {
               <div className="bg-black/60 p-8 rounded-[2.5rem] border border-zinc-800">
                 <p className="text-[#22c55e] text-[10px] font-black uppercase tracking-widest mb-6 border-b border-zinc-900 pb-4">Directory Listing Model</p>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-4xl font-black text-white italic uppercase tracking-tighter">$99-299</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-white italic uppercase tracking-tighter truncate">$99-299</p>
                   <p className="text-right text-xs text-zinc-500 font-black uppercase leading-tight">Per<br/>Month</p>
                 </div>
                 <p className="text-[10px] text-zinc-500 italic leading-relaxed mt-4">

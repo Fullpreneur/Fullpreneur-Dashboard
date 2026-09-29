@@ -38,7 +38,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="flex h-full w-64 flex-col bg-zinc-950 border-r border-zinc-800 font-sans">
+    <div className="flex h-full w-64 max-w-[85vw] min-w-0 flex-col bg-zinc-950 border-r border-zinc-800 font-sans">
       {/* BRANDING */}
       <div className="flex h-20 items-center px-6">
         <div className="flex flex-col">
@@ -55,9 +55,9 @@ export default function Sidebar() {
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link key={item.name} href={item.href} className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all ${isActive ? "bg-zinc-900 text-[#00f2ff] border border-[#00f2ff]/20" : "text-zinc-500 hover:text-zinc-200"}`}>
-                  <item.icon className={`w-4 h-4 ${isActive ? "text-[#00f2ff]" : "text-zinc-500"}`} />
-                  {item.name}
+                <Link key={item.name} href={item.href} className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all min-w-0 ${isActive ? "bg-zinc-900 text-[#00f2ff] border border-[#00f2ff]/20" : "text-zinc-500 hover:text-zinc-200"}`}>
+                  <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#00f2ff]" : "text-zinc-500"}`} />
+                  <span className="truncate">{item.name}</span>
                 </Link>
               );
             })}
@@ -71,9 +71,9 @@ export default function Sidebar() {
             {opportunities.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link key={item.name} href={item.href} className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all ${isActive ? "bg-zinc-900 text-[#00f2ff] border border-[#00f2ff]/20" : "text-zinc-500 hover:text-zinc-200"}`}>
-                  <item.icon className={`w-4 h-4 ${isActive ? "text-[#00f2ff]" : "text-zinc-500 group-hover:text-[#00f2ff]/70"}`} />
-                  {item.name}
+                <Link key={item.name} href={item.href} className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all min-w-0 ${isActive ? "bg-zinc-900 text-[#00f2ff] border border-[#00f2ff]/20" : "text-zinc-500 hover:text-zinc-200"}`}>
+                  <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#00f2ff]" : "text-zinc-500 group-hover:text-[#00f2ff]/70"}`} />
+                  <span className="truncate">{item.name}</span>
                 </Link>
               );
             })}

@@ -104,16 +104,16 @@ export default function CreativeSpace() {
   ];
 
   return (
-    <div className="p-8 bg-[#020202] min-h-screen text-white font-sans selection:bg-[#a855f7]/30">
+    <div className="p-4 sm:p-6 md:p-8 bg-[#020202] min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans selection:bg-[#a855f7]/30">
       
       {/* HEADER */}
-      <header className="flex flex-col lg:flex-row justify-between items-center mb-16 gap-8">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 md:mb-16 gap-8 w-full min-w-0">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="p-5 bg-zinc-900/50 rounded-[1.5rem] border border-zinc-800 hover:border-[#a855f7] transition-all group backdrop-blur-md">
             <ArrowLeft className="w-6 h-6 text-zinc-500 group-hover:text-[#a855f7]" />
           </Link>
           <div>
-            <h1 className="text-7xl font-black italic uppercase tracking-tighter leading-none">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black italic uppercase tracking-tighter leading-none break-words">
               CREATIVE <span className="text-zinc-800 uppercase">Space</span>
             </h1>
             <div className="flex items-center gap-3 mt-3">
@@ -129,16 +129,16 @@ export default function CreativeSpace() {
       </header>
 
       {/* KPI GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 mb-16 w-full min-w-0">
         {categories.map((cat, i) => (
-          <div key={i} className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-[2.5rem] relative group transition-all">
+          <div key={i} className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-6 sm:p-8 rounded-[2.5rem] relative group transition-all">
             <div className="flex justify-between items-start">
               <div className="p-4 bg-black/50 rounded-2xl border border-zinc-800">
                 <cat.icon className="w-8 h-8" style={{ color: cat.color }} />
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-black text-zinc-600 uppercase italic">Weekly</p>
-                <p className="text-2xl font-black italic">{cat.current} / 1</p>
+                <p className="text-xl sm:text-2xl font-black italic truncate">{cat.current} / 1</p>
               </div>
             </div>
             <h3 className="mt-8 text-xl font-black uppercase italic tracking-tight">{cat.name}</h3>
@@ -149,9 +149,9 @@ export default function CreativeSpace() {
         ))}
       </div>
 
-      <div className="grid grid-cols-12 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 w-full min-w-0">
         {/* LEFT: THE FUNCTIONAL SCRATCHPAD */}
-        <div className="col-span-12 lg:col-span-8 space-y-8">
+        <div className="col-span-1 lg:col-span-8 space-y-8 w-full min-w-0">
           <div className="bg-zinc-900/20 border border-zinc-800 rounded-[3rem] p-10 relative group shadow-2xl">
             <div className="flex justify-between items-center mb-8 px-4">
               <div className="flex items-center gap-4">
@@ -178,11 +178,11 @@ export default function CreativeSpace() {
             <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-10">Activity <span className="text-zinc-800">Archive</span></h2>
             <div className="space-y-4">
               {entries.map((entry) => (
-                <div key={entry.id} className="group bg-black/40 border border-zinc-800/50 p-8 rounded-[2.5rem] flex items-center justify-between hover:border-zinc-600 transition-all">
+                <div key={entry.id} className="group bg-black/40 border border-zinc-800/50 p-6 sm:p-8 rounded-[2.5rem] flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-zinc-600 transition-all min-w-0">
                   <div className="flex items-center gap-8">
                     <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800 text-[#a855f7]"><Sparkles className="w-6 h-6" /></div>
                     <div>
-                      <p className="text-2xl font-black italic uppercase tracking-tighter leading-none mb-2">{entry.title}</p>
+                      <p className="text-lg sm:text-2xl font-black italic uppercase tracking-tighter leading-none mb-2 break-words">{entry.title}</p>
                       <p className="text-[10px] font-black text-zinc-600 uppercase italic tracking-widest">{entry.date}</p>
                     </div>
                   </div>
@@ -194,13 +194,13 @@ export default function CreativeSpace() {
         </div>
 
         {/* RIGHT: TOOLS & IDENTITY */}
-        <div className="col-span-12 lg:col-span-4 space-y-8">
+        <div className="col-span-1 lg:col-span-4 space-y-8 w-full min-w-0">
           {/* TOOL DOCK */}
           <div className="bg-zinc-900/10 border border-zinc-800 rounded-[3.5rem] p-10 shadow-xl">
             <h3 className="font-black uppercase italic tracking-widest text-xs text-zinc-500 mb-8 flex items-center gap-3">
               <Cpu className="w-4 h-4 text-[#a855f7]"/> Power Tool Dock
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { name: "Canva", url: "https://canva.com", icon: Layout },
                 { name: "Claude", url: "https://claude.ai", icon: Sparkles },
@@ -242,13 +242,13 @@ export default function CreativeSpace() {
       {/* MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[500] flex items-center justify-center p-6">
-          <form onSubmit={handleLogFulfillment} className="bg-zinc-900 border border-zinc-800 p-16 rounded-[4rem] max-w-2xl w-full">
+          <form onSubmit={handleLogFulfillment} className="bg-zinc-900 border border-zinc-800 p-6 sm:p-12 rounded-[2rem] sm:rounded-[4rem] max-w-2xl w-full min-w-0 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-start mb-12">
               <h2 className="text-5xl font-black italic uppercase tracking-tighter">Log <span className="text-[#a855f7]">Fulfillment</span></h2>
               <button type="button" onClick={() => setIsModalOpen(false)}><X className="text-zinc-600 hover:text-white" /></button>
             </div>
             <div className="space-y-8">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {['Art', 'Music', 'Travel', 'Mind'].map(c => (
                   <button key={c} type="button" onClick={() => setNewEntry({...newEntry, category: c})}
                     className={`p-6 rounded-2xl font-black uppercase text-[10px] tracking-widest border transition-all ${newEntry.category === c ? 'bg-[#a855f7] border-[#a855f7] text-white shadow-lg' : 'bg-black border-zinc-800 text-zinc-500'}`}

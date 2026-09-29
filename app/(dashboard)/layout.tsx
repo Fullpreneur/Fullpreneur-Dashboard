@@ -31,7 +31,7 @@ export default function DashboardLayout({
   if (loading) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#020202] relative">
+    <div className="flex h-screen w-full max-w-vw overflow-hidden overflow-x-hidden bg-[#020202] relative">
       
       {/* MOBILE HAMBURGER */}
       {!isMobileMenuOpen && (
@@ -67,7 +67,7 @@ export default function DashboardLayout({
       )}
 
       {/* DASHBOARD CONTENT AREA */}
-      <main className="flex-1 overflow-y-auto bg-[#020202] relative">
+      <main className="flex-1 min-w-0 w-full max-w-vw overflow-y-auto overflow-x-hidden bg-[#020202] relative pt-16 lg:pt-0">
         {children}
       </main>
     </div>

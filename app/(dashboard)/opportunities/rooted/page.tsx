@@ -3,11 +3,11 @@ import { Users, ShieldCheck, MapPin, Search, Star, ArrowUpRight } from "lucide-r
 
 export default function RootedCommand() {
   return (
-    <div className="p-10 space-y-8 bg-black min-h-screen text-white font-sans">
+    <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-black min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans">
       {/* HEADER */}
-      <header className="flex justify-between items-end border-b border-zinc-800 pb-8">
-        <div>
-          <h1 className="text-5xl font-black tracking-tighter uppercase italic text-glow">Rooted Marketplace</h1>
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-zinc-800 pb-8 w-full min-w-0">
+        <div className="w-full min-w-0">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tighter uppercase italic text-glow break-words">Rooted Marketplace</h1>
           <p className="text-[#00f2ff] font-bold tracking-[0.2em] text-xs mt-2 uppercase">Local Service Vetting & Marketplace Hub</p>
         </div>
         <div className="text-right">
@@ -16,7 +16,7 @@ export default function RootedCommand() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 w-full min-w-0">
         {/* PHILOSOPHY & VETTING ENGINE */}
         <div className="lg:col-span-2 space-y-8">
           <section className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-3xl">

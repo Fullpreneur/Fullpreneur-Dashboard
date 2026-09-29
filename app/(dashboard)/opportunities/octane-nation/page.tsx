@@ -3,10 +3,10 @@ import { Globe, Flag, Handshake, Users, ShieldAlert } from "lucide-react";
 
 export default function OctaneNationCommand() {
   return (
-    <div className="p-10 space-y-8 bg-black min-h-screen text-white font-sans">
-      <header className="flex justify-between items-end border-b border-zinc-800 pb-8">
-        <div>
-          <h1 className="text-5xl font-black tracking-tighter uppercase italic text-glow">Octane Nation</h1>
+    <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-black min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-zinc-800 pb-8 w-full min-w-0">
+        <div className="w-full min-w-0">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tighter uppercase italic text-glow break-words">Octane Nation</h1>
           <p className="text-[#00f2ff] font-bold tracking-[0.2em] text-xs mt-2 uppercase">Community & Partner Hub</p>
         </div>
         <div className="text-right">
@@ -15,9 +15,9 @@ export default function OctaneNationCommand() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <section className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-3xl">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 w-full min-w-0">
+        <div className="lg:col-span-2 space-y-8 w-full min-w-0">
+          <section className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-6 sm:p-8 rounded-3xl">
             <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-[#00f2ff] mb-6">
               <Globe className="w-4 h-4" /> The 34-Page Community Vision
             </h2>
@@ -36,7 +36,7 @@ export default function OctaneNationCommand() {
             </div>
           </section>
 
-          <section className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-3xl">
+          <section className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-6 sm:p-8 rounded-3xl">
             <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mb-6">
               <Handshake className="w-4 h-4" /> Partner Pipeline
             </h2>
@@ -68,11 +68,11 @@ export default function OctaneNationCommand() {
             </button>
           </section>
 
-          <section className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-3xl">
+          <section className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-6 sm:p-8 rounded-3xl">
             <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mb-6">
               <Users className="w-4 h-4" /> Member Growth
             </h2>
-            <p className="text-4xl font-black italic">0</p>
+            <p className="text-xl sm:text-2xl lg:text-3xl font-black italic truncate">0</p>
             <p className="text-[9px] text-zinc-600 uppercase font-black mt-1">Founding Members</p>
           </section>
 

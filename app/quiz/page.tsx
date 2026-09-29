@@ -356,10 +356,10 @@ const DiscoveryForm = () => {
         return (
           <div className="space-y-6 pt-4">
             <input type="range" min={q.min} max={q.max} value={val || q.min} onChange={(e) => handleInputChange(q.id, e.target.value)} className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-[#00f2ff]" />
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-600 font-black uppercase text-[10px] tracking-widest">Low Satisfaction</span>
-              <span className="text-4xl font-black italic text-[#00f2ff]">{val || q.min}</span>
-              <span className="text-zinc-600 font-black uppercase text-[10px] tracking-widest">Full Clearance</span>
+            <div className="grid grid-cols-3 items-center gap-2 w-full min-w-0">
+              <span className="text-zinc-600 font-black uppercase text-[10px] tracking-wide break-words">Low Satisfaction</span>
+              <span className="text-xl sm:text-2xl lg:text-3xl font-black italic text-[#00f2ff] text-center">{val || q.min}</span>
+              <span className="text-zinc-600 font-black uppercase text-[10px] tracking-wide break-words text-right">Full Clearance</span>
             </div>
           </div>
         );
@@ -390,7 +390,7 @@ const DiscoveryForm = () => {
         return (
           <div className="p-8 bg-[#00f2ff]/5 border-2 border-[#00f2ff]/20 rounded-[2rem] text-center">
             <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-2 italic underline decoration-[#00f2ff]">Calculated Velocity</p>
-            <span className="text-5xl font-black italic text-[#00f2ff] tracking-tighter">{q.calculation(responses)}</span>
+            <span className="text-xl sm:text-2xl lg:text-3xl font-black italic text-[#00f2ff] tracking-tighter break-words">{q.calculation(responses)}</span>
             <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] mt-2 italic">per hour of execution</p>
           </div>
         );
@@ -404,7 +404,7 @@ const DiscoveryForm = () => {
                    <h4 className="font-black italic uppercase text-[#00f2ff] text-xs">Revenue Stream {i+1}</h4>
                 </div>
                 <input type="text" value={s.name} onChange={(e) => {const n=[...streams];n[i].name=e.target.value;handleInputChange(q.id,n);}} placeholder="Stream name" className={baseInput} />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input type="text" value={s.monthlyRevenue} onChange={(e) => {const n=[...streams];n[i].monthlyRevenue=e.target.value;handleInputChange(q.id,n);}} placeholder="Monthly revenue" className={baseInput} />
                   <input type="text" value={s.hoursPerWeek} onChange={(e) => {const n=[...streams];n[i].hoursPerWeek=e.target.value;handleInputChange(q.id,n);}} placeholder="Hours/week" className={baseInput} />
                 </div>
@@ -420,7 +420,7 @@ const DiscoveryForm = () => {
         const total = Object.values(budget).reduce((sum: number,v: any) => sum + (parseFloat(v)||0), 0);
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {Object.keys(budget).map(k => (
                 <div key={k}>
                   <label className="block text-[10px] font-black uppercase text-zinc-500 mb-2 italic">{k.replace(/([A-Z])/g,' $1')}</label>
@@ -430,7 +430,7 @@ const DiscoveryForm = () => {
             </div>
             <div className={`p-6 rounded-[2rem] font-black italic uppercase text-center border-2 transition-all ${total===168?'bg-[#00f2ff]/10 text-[#00f2ff] border-[#00f2ff] shadow-[0_0_20px_rgba(0,242,255,0.2)]':'bg-red-900/10 text-red-500 border-red-900'}`}>
               <p className="text-[10px] mb-1">Weekly Budget Status</p>
-              <span className="text-3xl">{total} / 168 HOURS</span>
+              <span className="text-xl sm:text-2xl lg:text-3xl break-words">{total} / 168 HOURS</span>
               {total !== 168 && <p className="text-[10px] mt-1">{total > 168 ? `OVER BY ${total-168}` : `REMAINING: ${168-total}`}</p>}
             </div>
           </div>
@@ -451,12 +451,12 @@ const DiscoveryForm = () => {
 
   if (viewMode === 'admin') {
     return (
-      <div className="min-h-screen bg-[#020202] p-8 text-white">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-[#020202] p-4 text-white overflow-x-hidden">
+        <div className="max-w-2xl mx-auto px-4">
           <div className="bg-zinc-900/40 rounded-[3rem] p-10 mb-8 border border-zinc-800">
-            <div className="flex justify-between items-center">
-              <h1 className="text-4xl font-black italic uppercase tracking-tighter">System Log: <span className="text-[#00f2ff]">Responses</span></h1>
-              <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h1 className="text-2xl sm:text-4xl font-black italic uppercase tracking-tighter break-words">System Log: <span className="text-[#00f2ff]">Responses</span></h1>
+              <div className="flex flex-wrap gap-4">
                 <button onClick={exportToCSV} className="px-8 py-3 bg-[#00f2ff] text-black rounded-full font-black italic uppercase flex items-center gap-2 hover:shadow-[0_0_20px_rgba(0,242,255,0.4)]">
                   <Download size={18} />Export CSV
                 </button>
@@ -466,13 +466,13 @@ const DiscoveryForm = () => {
           </div>
           <div className="grid gap-6">
             {allResponses.map((sub,idx) => (
-              <div key={idx} className="bg-zinc-900/20 rounded-[2rem] p-8 border border-zinc-800">
+              <div key={idx} className="bg-zinc-900/20 rounded-[2rem] p-4 sm:p-8 border border-zinc-800 w-full min-w-0">
                 <p className="text-[#00f2ff] font-black italic uppercase text-xs mb-4">Entry — {new Date(sub.updated_at).toLocaleString()}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    {Object.entries(sub.quiz_responses || sub.raw_quiz_data || {}).map(([k,v]: any) => (
                      <div key={k} className="p-4 bg-black/40 rounded-xl border border-zinc-800">
                         <span className="text-[10px] font-black text-zinc-600 uppercase italic mb-1 block underline">{k}</span>
-                        <p className="text-white font-bold italic uppercase text-sm">{typeof v==='object'?JSON.stringify(v):v}</p>
+                        <p className="text-white font-bold italic uppercase text-sm break-words">{typeof v==='object'?JSON.stringify(v):v}</p>
                      </div>
                    ))}
                 </div>
@@ -486,13 +486,13 @@ const DiscoveryForm = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6">
-        <div className="bg-zinc-900/30 rounded-[4rem] p-16 max-w-3xl text-center border-2 border-[#00f2ff]/30 shadow-[0_0_50px_rgba(0,242,255,0.1)] relative overflow-hidden text-white">
+      <div className="min-h-screen bg-[#020202] flex items-center justify-center px-4 overflow-x-hidden">
+        <div className="bg-zinc-900/30 rounded-[2rem] sm:rounded-[4rem] p-6 sm:p-10 max-w-2xl mx-auto px-4 w-full min-w-0 text-center border-2 border-[#00f2ff]/30 shadow-[0_0_50px_rgba(0,242,255,0.1)] relative overflow-hidden text-white">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f2ff] to-transparent" />
           <div className="w-24 h-24 bg-[#00f2ff] rounded-3xl flex items-center justify-center mx-auto mb-10 rotate-12 shadow-[0_0_40px_rgba(0,242,255,0.5)]">
             <Check className="w-14 h-14 text-black" strokeWidth={4} />
           </div>
-          <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter mb-6">CLEARANCE <br /><span className="text-[#00f2ff]">GRANTED.</span></h1>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter mb-6 break-words">CLEARANCE <br /><span className="text-[#00f2ff]">GRANTED.</span></h1>
           <p className="text-zinc-500 text-xl font-bold italic uppercase mb-12 leading-tight">Your data has been uploaded to the OS. Our architects are currently mapping your custom dashboard.</p>
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <Link href="/dashboard" className="px-12 py-6 bg-white text-black font-black uppercase italic tracking-widest rounded-full hover:bg-[#00f2ff] transition-all">
@@ -511,15 +511,15 @@ const DiscoveryForm = () => {
   const progress = ((currentSection + 1) / sections.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#020202] pb-24 text-white">
+    <div className="min-h-screen bg-[#020202] pb-24 text-white overflow-x-hidden w-full max-w-vw">
       {/* Background Decor */}
       <div className="fixed top-0 left-0 w-full h-screen pointer-events-none overflow-hidden opacity-20">
         <div className="absolute -top-1/4 -right-1/4 w-1/2 h-1/2 bg-[#00f2ff] blur-[180px] rounded-full" />
         <div className="absolute -bottom-1/4 -left-1/4 w-1/2 h-1/2 bg-blue-900 blur-[180px] rounded-full" />
       </div>
 
-      <nav className="p-8 border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
+      <nav className="border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-2xl mx-auto px-4 py-6 flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <Brain className="text-[#00f2ff]" />
             <span className="font-black italic uppercase tracking-tighter text-xl">Fullpreneur<span className="text-zinc-700">OS</span></span>
@@ -530,27 +530,29 @@ const DiscoveryForm = () => {
           </div>
         </div>
         {/* PROGRESS BAR */}
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-zinc-900">
-           <div className="h-full bg-[#00f2ff] shadow-[0_0_15px_#00f2ff] transition-all duration-500" style={{width: `${progress}%`}} />
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="h-1 bg-zinc-900 w-full">
+             <div className="h-full bg-[#00f2ff] shadow-[0_0_15px_#00f2ff] transition-all duration-500" style={{width: `${progress}%`}} />
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 pt-16 relative">
+      <main className="max-w-2xl mx-auto px-4 pt-10 sm:pt-16 relative w-full min-w-0">
         <div className="mb-16">
           <div className="inline-flex items-center gap-2 mb-4">
              <div className="w-2 h-2 rounded-full bg-[#00f2ff] animate-pulse" />
-             <p className="text-[#00f2ff] font-black text-[10px] uppercase tracking-[0.4em] italic">Secure Connection Established</p>
+             <p className="text-[#00f2ff] font-black text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.4em] italic break-words">Secure Connection Established</p>
           </div>
-          <h1 className="text-5xl md:text-8xl font-black italic uppercase tracking-tighter leading-none mb-4">{currentSectionData.title}</h1>
-          <p className="text-zinc-500 text-lg font-bold italic uppercase tracking-tight">{currentSectionData.subtitle}</p>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter leading-none mb-4 break-words">{currentSectionData.title}</h1>
+          <p className="text-zinc-500 text-base sm:text-lg font-bold italic uppercase tracking-tight break-words">{currentSectionData.subtitle}</p>
         </div>
 
         <div className="space-y-12">
           {currentSectionData.questions.map((question, idx) => (
-            <div key={question.id} className="p-10 bg-zinc-900/20 border border-white/5 rounded-[3.5rem] hover:border-zinc-800 transition-all">
+            <div key={question.id} className="p-4 sm:p-8 bg-zinc-900/20 border border-white/5 rounded-[2rem] sm:rounded-[3.5rem] hover:border-zinc-800 transition-all w-full min-w-0">
               <div className="flex gap-4 mb-8">
                 <span className="text-[#00f2ff] font-black italic text-2xl opacity-30">{idx + 1 < 10 ? `0${idx + 1}` : idx + 1}</span>
-                <label className="text-xl md:text-2xl font-black italic uppercase text-white tracking-tight leading-tight">
+                <label className="text-lg sm:text-xl md:text-2xl font-black italic uppercase text-white tracking-tight leading-tight break-words">
                   {question.label}
                 </label>
               </div>
@@ -562,10 +564,10 @@ const DiscoveryForm = () => {
         </div>
 
         {showRegister && (
-          <form ref={registerRef} onSubmit={handleRegister} className="mt-16 p-10 bg-zinc-900/40 border border-[#00f2ff]/30 rounded-[3rem] space-y-6">
+          <form ref={registerRef} onSubmit={handleRegister} className="mt-16 max-w-2xl mx-auto px-4 py-6 sm:p-8 bg-zinc-900/40 border border-[#00f2ff]/30 rounded-[2rem] sm:rounded-[3rem] space-y-6 w-full min-w-0">
             <div>
               <p className="text-[#00f2ff] font-black text-[10px] uppercase tracking-[0.4em] italic mb-3">Audit saved on this device</p>
-              <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter">Create your operator account</h2>
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black italic uppercase tracking-tighter break-words">Create your operator account</h2>
               <p className="text-zinc-500 font-bold italic uppercase text-sm mt-3">Register to load this audit into your dashboard.</p>
             </div>
             <div className="max-w-xl space-y-4">
@@ -607,16 +609,16 @@ const DiscoveryForm = () => {
 
         {/* CONTROLS */}
         <div className="mt-20 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-white/5 pt-16">
-          <button onClick={handlePrevious} disabled={currentSection === 0} className={`px-12 py-6 rounded-full font-black italic uppercase text-xs tracking-widest transition-all flex items-center gap-3 ${currentSection === 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}>
+          <button onClick={handlePrevious} disabled={currentSection === 0} className={`w-full sm:w-auto px-8 sm:px-12 py-5 sm:py-6 rounded-full font-black italic uppercase text-xs tracking-widest transition-all flex items-center justify-center gap-3 ${currentSection === 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}>
             <ChevronLeft size={18} /> Previous System
           </button>
 
           {showRegister ? null : currentSection === sections.length - 1 ? (
-            <button onClick={handleSubmit} className="px-20 py-8 bg-[#00f2ff] text-black rounded-full font-black italic uppercase text-sm tracking-[0.2em] hover:shadow-[0_0_40px_rgba(0,242,255,0.4)] transition-all flex items-center gap-3 scale-110">
+            <button onClick={handleSubmit} className="w-full sm:w-auto px-8 sm:px-12 py-5 sm:py-6 bg-[#00f2ff] text-black rounded-full font-black italic uppercase text-sm tracking-[0.2em] hover:shadow-[0_0_40px_rgba(0,242,255,0.4)] transition-all flex items-center justify-center gap-3">
               Complete Audit <Check size={20} />
             </button>
           ) : (
-            <button onClick={handleNext} className="px-20 py-8 bg-white text-black rounded-full font-black italic uppercase text-sm tracking-[0.2em] hover:bg-[#00f2ff] transition-all flex items-center gap-3 scale-110">
+            <button onClick={handleNext} className="w-full sm:w-auto px-8 sm:px-12 py-5 sm:py-6 bg-white text-black rounded-full font-black italic uppercase text-sm tracking-[0.2em] hover:bg-[#00f2ff] transition-all flex items-center justify-center gap-3">
               Next Step <ChevronRight size={20} />
             </button>
           )}

@@ -57,9 +57,9 @@ export default function AlliOTracker() {
   if (!isMounted) return <div className="bg-black min-h-screen" />;
 
   return (
-    <div className="p-10 space-y-8 bg-black min-h-screen text-white font-sans">
+    <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-black min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans">
       {/* ----------------- HEADER ----------------- */}
-      <header className="flex justify-between items-end border-b border-zinc-800 pb-12">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 border-b border-zinc-800 pb-12 w-full min-w-0">
         <div>
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-[#3b82f6]/20 p-2 rounded-lg border border-[#3b82f6]/30">
@@ -69,7 +69,7 @@ export default function AlliOTracker() {
               SaaS Development Asset
             </p>
           </div>
-          <h1 className="text-8xl font-black tracking-tighter uppercase italic text-white leading-none">
+          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black tracking-tighter uppercase italic text-white leading-none break-words">
             Alli<span className="text-zinc-700">O</span>
           </h1>
           <div className="flex items-center gap-4 mt-6">
@@ -79,11 +79,11 @@ export default function AlliOTracker() {
           </div>
         </div>
         
-        <div className="flex gap-6">
-          <div className="bg-zinc-900/40 p-6 rounded-[2.5rem] border border-zinc-800 flex items-center gap-6 shadow-2xl">
-            <div className="text-right">
+        <div className="flex gap-6 w-full min-w-0 lg:w-auto">
+          <div className="bg-zinc-900/40 p-6 rounded-[2.5rem] border border-zinc-800 flex items-center gap-6 shadow-2xl w-full min-w-0">
+            <div className="text-right min-w-0">
               <p className="text-zinc-600 text-[8px] font-black uppercase tracking-widest mb-1">Target Monthly Revenue</p>
-              <p className="text-3xl font-black text-[#22c55e] italic tracking-tighter uppercase">
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#22c55e] italic tracking-tighter uppercase truncate">
                 $3,000<span className="text-[10px] text-zinc-500 ml-1">USD/MO</span>
               </p>
             </div>
@@ -95,7 +95,7 @@ export default function AlliOTracker() {
       </header>
 
       {/* ----------------- NAVIGATION ----------------- */}
-      <nav className="flex gap-4 border-b border-zinc-900 pb-8 overflow-x-auto no-scrollbar">
+      <nav className="flex gap-4 border-b border-zinc-900 pb-8 overflow-x-auto custom-scrollbar w-full min-w-0">
         {[
           { id: "roadmap", label: "8-Week Roadmap", icon: Flag, color: "#3b82f6" },
           { id: "mvp", label: "MVP Architecture", icon: Layers, color: "#3b82f6" },
@@ -329,8 +329,8 @@ export default function AlliOTracker() {
 
       {/* ----------------- 5. EXIT READINESS (NEW & DETAILED) ----------------- */}
       {activeTab === "exit" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-in fade-in duration-500">
-          <div className="lg:col-span-8 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 animate-in fade-in duration-500 w-full min-w-0">
+          <div className="lg:col-span-8 space-y-8 w-full min-w-0">
             <h3 className="text-[#facc15] text-xs font-black uppercase tracking-[0.4em] italic flex items-center gap-3">
               <Lock className="w-5 h-5" /> Due Diligence Vault
             </h3>
@@ -357,17 +357,17 @@ export default function AlliOTracker() {
             </div>
           </div>
 
-          <div className="lg:col-span-4 space-y-8">
-            <section className="bg-zinc-900/60 border border-zinc-800 p-10 rounded-[3.5rem] text-center border-t-8 border-t-[#facc15] shadow-2xl">
+          <div className="lg:col-span-4 space-y-8 w-full min-w-0">
+            <section className="w-full min-w-0 bg-zinc-900/60 border border-zinc-800 p-6 sm:p-10 rounded-[3.5rem] text-center border-t-8 border-t-[#facc15] shadow-2xl">
               <Trophy className="w-16 h-16 text-[#facc15] mx-auto mb-8" />
-              <h3 className="text-4xl font-black italic uppercase text-white leading-none mb-6">The Exit Thesis</h3>
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black italic uppercase text-white leading-none mb-6 break-words">The Exit Thesis</h3>
               <p className="text-zinc-500 text-xs italic leading-relaxed mb-10">
                 Scale to 50 active venues within 18 months. Standardize the &quot;AlliO Protocol&quot; for facility operations. Sell to a major conglomerate (NASCAR, SMI, or Liberty Media).
               </p>
               <div className="space-y-4">
                 <div className="bg-black/60 p-6 rounded-2xl border border-zinc-800 text-left">
                   <p className="text-[9px] font-black text-[#facc15] uppercase italic mb-1">Target Exit Metric</p>
-                  <p className="text-3xl font-black italic uppercase text-white tracking-tighter">50 VENUES</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-black italic uppercase text-white tracking-tighter break-words">50 VENUES</p>
                   <p className="text-sm font-black text-[#22c55e] italic mt-1">~$300k Annual Revenue</p>
                 </div>
               </div>

@@ -35,11 +35,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 text-white font-bold italic uppercase">
-      <div className="max-w-md w-full bg-zinc-900/30 border border-white/5 p-12 rounded-[3rem] backdrop-blur-xl">
-        <div className="flex items-center gap-3 mb-10 justify-center">
-          <Zap className="text-[#00f2ff]" size={32} fill="#00f2ff" />
-          <h1 className="text-3xl tracking-tighter">Fullpreneur<span className="text-zinc-700">OS</span></h1>
+    <div className="min-h-screen w-full max-w-vw overflow-x-hidden bg-[#020202] flex items-center justify-center p-4 sm:p-6 text-white font-bold italic uppercase">
+      <div className="max-w-md w-full min-w-0 bg-zinc-900/30 border border-white/5 p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] backdrop-blur-xl">
+        <div className="flex items-center gap-3 mb-10 justify-center min-w-0">
+          <Zap className="text-[#00f2ff] shrink-0" size={32} fill="#00f2ff" />
+          <h1 className="text-2xl sm:text-3xl tracking-tighter break-words">Fullpreneur<span className="text-zinc-700">OS</span></h1>
         </div>
         
         <div className="text-center mb-8">

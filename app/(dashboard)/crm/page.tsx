@@ -84,22 +84,22 @@ export default function LeadVault() {
   }, [leads, searchTerm, activeFilter]);
 
   return (
-    <div className="p-10 bg-[#020202] min-h-screen text-white font-sans selection:bg-[#00f2ff]/30">
+    <div className="p-4 sm:p-6 md:p-10 bg-[#020202] min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans selection:bg-[#00f2ff]/30">
       
       {/* HEADER SECTION - NO STRIPPING */}
-      <header className="flex flex-col lg:flex-row justify-between items-end mb-20 gap-8">
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="h-[3px] w-16 bg-[#00f2ff] shadow-[0_0_20px_#00f2ff]"></div>
-            <p className="text-[#00f2ff] font-black text-[12px] uppercase tracking-[0.7em] italic">Fullpreneur Lead Vault Command Center</p>
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 md:mb-20 gap-8 w-full min-w-0">
+        <div className="space-y-6 w-full min-w-0">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="h-[3px] w-16 shrink-0 bg-[#00f2ff] shadow-[0_0_20px_#00f2ff]"></div>
+            <p className="text-[#00f2ff] font-black text-[12px] uppercase tracking-[0.2em] sm:tracking-[0.7em] italic break-words">Fullpreneur Lead Vault Command Center</p>
           </div>
-          <h1 className="text-9xl font-black italic uppercase tracking-tighter leading-[0.75]">
+          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black italic uppercase tracking-tighter leading-[0.85] break-words">
             LEAD <span className="text-zinc-900 uppercase">Vault</span>
           </h1>
         </div>
         
-        <div className="flex flex-col gap-6 items-end">
-          <div className="bg-zinc-900/40 p-3 rounded-3xl border border-zinc-800/50 flex gap-2 backdrop-blur-xl shadow-2xl">
+        <div className="flex flex-col gap-6 items-stretch lg:items-end w-full min-w-0">
+          <div className="bg-zinc-900/40 p-3 rounded-3xl border border-zinc-800/50 flex gap-2 backdrop-blur-xl shadow-2xl overflow-x-auto custom-scrollbar w-full max-w-full">
             {["All", "Dominion", "SBA", "Property Improvements", "AlliO"].map(p => (
               <button 
                 key={p} 
@@ -112,7 +112,7 @@ export default function LeadVault() {
           </div>
           <button 
             onClick={() => setIsModalOpen(true)} 
-            className="group bg-white text-black px-12 py-6 rounded-3xl font-black uppercase text-[12px] tracking-[0.2em] hover:bg-[#00f2ff] transition-all flex items-center gap-4 shadow-[0_10px_40px_rgba(255,255,255,0.05)] active:scale-95"
+            className="group bg-white text-black px-6 sm:px-12 py-5 sm:py-6 rounded-3xl font-black uppercase text-[12px] tracking-[0.2em] hover:bg-[#00f2ff] transition-all flex items-center justify-center gap-4 shadow-[0_10px_40px_rgba(255,255,255,0.05)] active:scale-95 w-full sm:w-auto"
           >
             <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Initialize New Lead Asset
           </button>
@@ -120,7 +120,7 @@ export default function LeadVault() {
       </header>
 
       {/* THE 5-PILLAR METRIC GRID (FULLY RESTORED) */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-16 w-full min-w-0">
         {[
           { label: "Total Pipeline", val: leads.length, color: "text-white", icon: LayoutGrid, shadow: "shadow-white/5" },
           { label: "Dominion", val: leads.filter(l => l.pillar === "Dominion").length, color: "text-[#00f2ff]", icon: Zap, shadow: "shadow-[#00f2ff]/5" },
@@ -128,13 +128,13 @@ export default function LeadVault() {
           { label: "Property Improvements", val: leads.filter(l => l.pillar === "Property Improvements").length, color: "text-[#facc15]", icon: Building2, shadow: "shadow-[#facc15]/5" },
           { label: "AlliO Ecosystem", val: leads.filter(l => l.pillar === "AlliO").length, color: "text-purple-400", icon: Globe, shadow: "shadow-purple-400/5" },
         ].map((stat, i) => (
-          <div key={i} className={`bg-zinc-900/20 border border-zinc-800/80 p-10 rounded-[3rem] group hover:border-zinc-500 transition-all cursor-default shadow-2xl ${stat.shadow}`}>
+          <div key={i} className={`w-full min-w-0 bg-zinc-900/20 border border-zinc-800/80 p-6 sm:p-10 rounded-[3rem] group hover:border-zinc-500 transition-all cursor-default shadow-2xl ${stat.shadow}`}>
             <div className="flex justify-between items-start mb-8">
               <div className={`p-5 rounded-2xl bg-black border border-zinc-800 ${stat.color} group-hover:scale-110 transition-transform duration-500`}><stat.icon className="w-7 h-7" /></div>
               <TrendingUp className="w-5 h-5 text-zinc-800 group-hover:text-zinc-400 transition-colors" />
             </div>
-            <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] mb-2 leading-tight">{stat.label}</p>
-            <p className={`text-6xl font-black italic tracking-tighter ${stat.color}`}>
+            <p className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] mb-2 leading-tight break-words">{stat.label}</p>
+            <p className={`text-xl sm:text-2xl lg:text-3xl font-black italic tracking-tighter truncate ${stat.color}`}>
               {stat.val < 10 ? `0${stat.val}` : stat.val}
             </p>
           </div>
@@ -142,15 +142,15 @@ export default function LeadVault() {
       </div>
 
       {/* SEARCH INTERFACE */}
-      <div className="relative mb-14 group">
-        <Search className="absolute left-12 top-1/2 -translate-y-1/2 text-zinc-700 w-8 h-8 group-focus-within:text-[#00f2ff] transition-all" />
+      <div className="relative mb-14 group w-full min-w-0">
+        <Search className="absolute left-5 sm:left-10 top-1/2 -translate-y-1/2 text-zinc-700 w-6 h-6 sm:w-8 sm:h-8 group-focus-within:text-[#00f2ff] transition-all" />
         <input 
           value={searchTerm} 
           onChange={(e) => setSearchTerm(e.target.value)} 
           placeholder="Query the Vault: Name, Pillar, Interest, or Metadata..." 
-          className="w-full bg-zinc-900/10 border border-zinc-800/60 p-12 pl-28 rounded-[4rem] text-lg font-bold outline-none focus:border-[#00f2ff] focus:bg-zinc-900/30 transition-all shadow-inner placeholder:text-zinc-800" 
+          className="w-full min-w-0 bg-zinc-900/10 border border-zinc-800/60 p-5 sm:p-8 pl-14 sm:pl-24 rounded-[2rem] sm:rounded-[4rem] text-base sm:text-lg font-bold outline-none focus:border-[#00f2ff] focus:bg-zinc-900/30 transition-all shadow-inner placeholder:text-zinc-800" 
         />
-        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex gap-4 text-zinc-700 font-black text-[10px] uppercase tracking-widest">
+        <div className="absolute right-6 sm:right-12 top-1/2 -translate-y-1/2 hidden md:flex gap-4 text-zinc-700 font-black text-[10px] uppercase tracking-widest">
           <span>Search</span>
           <div className="h-4 w-[1px] bg-zinc-800"></div>
           <span>Filter</span>
@@ -158,8 +158,9 @@ export default function LeadVault() {
       </div>
 
       {/* THE MASTER TABLE ARCHITECTURE */}
-      <div className="bg-zinc-900/10 border border-zinc-800/60 rounded-[5rem] overflow-hidden shadow-2xl backdrop-blur-md">
-        <table className="w-full text-left">
+      <div className="bg-zinc-900/10 border border-zinc-800/60 rounded-[2rem] sm:rounded-[5rem] overflow-hidden shadow-2xl backdrop-blur-md w-full min-w-0">
+        <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full min-w-[720px] text-left">
           <thead className="bg-zinc-900/40 border-b border-zinc-800/80">
             <tr>
               <th className="p-14 text-[11px] font-black uppercase text-zinc-500 tracking-[0.4em] italic">Lead Identity & Source</th>
@@ -181,7 +182,7 @@ export default function LeadVault() {
                        <User className="w-8 h-8 text-zinc-700 group-hover:text-[#00f2ff] relative z-10" />
                     </div>
                     <div>
-                      <p className="text-4xl font-black italic uppercase tracking-tighter text-white group-hover:text-[#00f2ff] transition-all leading-none mb-4">{lead.full_name}</p>
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-white group-hover:text-[#00f2ff] transition-all leading-none mb-4 break-words">{lead.full_name}</p>
                       <div className="flex gap-8 text-[11px] font-black uppercase tracking-[0.2em] italic">
                         <span className="flex items-center gap-3 text-zinc-600 group-hover:text-zinc-400"><Mail className="w-4 h-4"/> {lead.email || "NO_EMAIL"}</span>
                         <span className="flex items-center gap-3 text-zinc-500"><Globe className="w-4 h-4"/> {lead.pillar}</span>
@@ -204,16 +205,17 @@ export default function LeadVault() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* SALES COMMAND CENTER DRAWER (NO STRIPPING) */}
       {selectedLead && (
         <div className="fixed inset-0 z-[1000] flex justify-end">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-2xl transition-all" onClick={() => {setSelectedLead(null); setIsScheduling(false);}} />
-          <div className="relative w-full max-w-4xl bg-[#050505] border-l border-zinc-800 h-full p-28 shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-500">
+          <div className="relative w-full max-w-4xl min-w-0 bg-[#050505] border-l border-zinc-800 h-full p-6 sm:p-10 md:p-16 shadow-2xl overflow-y-auto overflow-x-hidden custom-scrollbar animate-in slide-in-from-right duration-500">
             <button onClick={() => {setSelectedLead(null); setIsScheduling(false);}} className="absolute top-12 right-12 p-6 hover:bg-zinc-800 rounded-full transition-all text-zinc-500 hover:text-white"><X className="w-10 h-10" /></button>
             <p className="text-[#00f2ff] font-black text-[12px] uppercase tracking-[0.8em] italic mb-8">Tactical Execution Interface</p>
-            <h2 className="text-8xl font-black italic uppercase tracking-tighter text-white leading-[0.85] mb-20">{selectedLead.full_name}</h2>
+            <h2 className="text-3xl sm:text-5xl lg:text-7xl font-black italic uppercase tracking-tighter text-white leading-[0.85] mb-10 sm:mb-20 break-words">{selectedLead.full_name}</h2>
 
             {/* PIPELINE COMMANDS */}
             <div className="space-y-6 mb-20">
@@ -249,14 +251,14 @@ export default function LeadVault() {
 
             {/* METADATA & PERSISTENCE */}
             <div className="p-14 bg-black border border-zinc-800/80 rounded-[4.5rem] space-y-12 shadow-inner">
-               <div className="grid grid-cols-2 gap-10">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                   <div className="space-y-2">
                     <p className="text-[11px] font-black text-zinc-600 uppercase tracking-widest italic flex items-center gap-3"><Activity className="w-4 h-4"/> Pillar Origin</p>
-                    <p className="text-3xl font-black italic text-white uppercase">{selectedLead.pillar}</p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-black italic text-white uppercase break-words">{selectedLead.pillar}</p>
                   </div>
                   <div className="space-y-2">
                     <p className="text-[11px] font-black text-zinc-600 uppercase tracking-widest italic flex items-center gap-3"><TrendingUp className="w-4 h-4"/> Interest Level</p>
-                    <p className="text-3xl font-black italic text-[#facc15] uppercase">{selectedLead.service_interest || "GENERAL"}</p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-black italic text-[#facc15] uppercase break-words">{selectedLead.service_interest || "GENERAL"}</p>
                   </div>
                </div>
                <div className="space-y-3">
@@ -279,24 +281,24 @@ export default function LeadVault() {
 
       {/* INITIALIZATION MODAL (THE FULL ARCHITECTURE) */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[2000] flex items-center justify-center p-10 animate-in fade-in duration-500">
-          <form onSubmit={handleAddLead} className="bg-zinc-900 border border-zinc-800 p-24 rounded-[6rem] max-w-6xl w-full shadow-[0_0_150px_rgba(0,242,255,0.05)] relative overflow-hidden">
+        <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[2000] flex items-center justify-center p-4 sm:p-10 overflow-y-auto animate-in fade-in duration-500">
+          <form onSubmit={handleAddLead} className="bg-zinc-900 border border-zinc-800 p-6 sm:p-12 md:p-16 rounded-[2rem] sm:rounded-[4rem] max-w-6xl w-full min-w-0 max-h-[90vh] overflow-y-auto custom-scrollbar shadow-[0_0_150px_rgba(0,242,255,0.05)] relative">
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#00f2ff]/5 blur-[120px] rounded-full -mr-48 -mt-48"></div>
             <div className="flex justify-between items-start mb-20 relative z-10">
               <div>
-                <h2 className="text-8xl font-black italic uppercase tracking-tighter text-white leading-[0.8]">INITIALIZE<br/><span className="text-zinc-800">VAULT ENTRY</span></h2>
+                <h2 className="text-3xl sm:text-5xl lg:text-7xl font-black italic uppercase tracking-tighter text-white leading-[0.85] break-words">INITIALIZE<br/><span className="text-zinc-800">VAULT ENTRY</span></h2>
                 <p className="text-[#00f2ff] font-black text-xs uppercase tracking-[0.7em] italic mt-6">Secure Asset Deployment</p>
               </div>
               <button type="button" onClick={() => setIsModalOpen(false)} className="p-8 hover:bg-zinc-800 rounded-full transition-all text-zinc-700 hover:text-white"><X className="w-12 h-12" /></button>
             </div>
             
-            <div className="grid grid-cols-2 gap-10 relative z-10">
-              <div className="col-span-2 group">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-10 relative z-10 w-full min-w-0">
+              <div className="col-span-1 md:col-span-2 group">
                 <input required value={newLead.full_name} onChange={e => setNewLead({...newLead, full_name: e.target.value})} className="w-full bg-black border-2 border-zinc-800 p-12 rounded-[3.5rem] text-3xl font-black italic text-white outline-none focus:border-[#00f2ff] focus:shadow-[0_0_30px_rgba(0,242,255,0.1)] transition-all uppercase" placeholder="FULL LEGAL NAME" />
               </div>
-              <input value={newLead.email} onChange={e => setNewLead({...newLead, email: e.target.value})} className="bg-black border-2 border-zinc-800 p-10 rounded-[3rem] text-lg font-bold text-white outline-none focus:border-[#00f2ff] transition-all" placeholder="EMAIL ADDRESS" />
-              <input value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} className="bg-black border-2 border-zinc-800 p-10 rounded-[3rem] text-lg font-bold text-white outline-none focus:border-[#00f2ff] transition-all" placeholder="CONTACT PHONE" />
-              <input value={newLead.address} onChange={e => setNewLead({...newLead, address: e.target.value})} className="col-span-2 bg-black border-2 border-zinc-800 p-10 rounded-[3.5rem] text-lg font-bold text-white outline-none focus:border-[#00f2ff] transition-all uppercase" placeholder="PROPERTY / TARGET STREET ADDRESS" />
+              <input value={newLead.email} onChange={e => setNewLead({...newLead, email: e.target.value})} className="w-full min-w-0 bg-black border-2 border-zinc-800 p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] text-lg font-bold text-white outline-none focus:border-[#00f2ff] transition-all" placeholder="EMAIL ADDRESS" />
+              <input value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} className="w-full min-w-0 bg-black border-2 border-zinc-800 p-6 sm:p-10 rounded-[2rem] sm:rounded-[3rem] text-lg font-bold text-white outline-none focus:border-[#00f2ff] transition-all" placeholder="CONTACT PHONE" />
+              <input value={newLead.address} onChange={e => setNewLead({...newLead, address: e.target.value})} className="col-span-1 md:col-span-2 w-full min-w-0 bg-black border-2 border-zinc-800 p-6 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] text-lg font-bold text-white outline-none focus:border-[#00f2ff] transition-all uppercase" placeholder="PROPERTY / TARGET STREET ADDRESS" />
               
               <div className="relative group">
                 <select value={newLead.pillar} onChange={e => setNewLead({...newLead, pillar: e.target.value})} className="w-full bg-black border-2 border-zinc-800 p-10 rounded-[3rem] text-sm font-black italic text-[#00f2ff] outline-none uppercase tracking-widest appearance-none cursor-pointer">

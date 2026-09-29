@@ -124,23 +124,23 @@ export default function MasterCalendar() {
   }, [appointments, selectedPillar]);
 
   return (
-    <div className="p-8 bg-[#050505] min-h-screen text-white font-sans selection:bg-[#facc15]/30">
+    <div className="p-4 sm:p-6 md:p-8 bg-[#050505] min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans selection:bg-[#facc15]/30">
       
       {/* HEADER */}
-      <header className="flex flex-col lg:flex-row justify-between items-center mb-12 gap-6">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6 w-full min-w-0">
         <div className="flex items-center gap-6">
           <Link href="/" className="p-4 bg-zinc-900 rounded-2xl border border-zinc-800 hover:bg-zinc-800 transition-all">
             <ArrowLeft className="w-6 h-6 text-zinc-500" />
           </Link>
           <div>
-            <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none">
+            <h1 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter leading-none break-words">
               MASTER <span className="text-zinc-800 uppercase">Timeline</span>
             </h1>
             <p className="text-[#facc15] font-black text-[10px] uppercase tracking-[0.4em] mt-2 italic">Strategic Execution Engine</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4 w-full min-w-0 lg:w-auto">
           <div className="bg-zinc-900 p-1.5 rounded-2xl border border-zinc-800 flex gap-1 shadow-inner">
             <button onClick={() => setViewMode("month")} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${viewMode === "month" ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"}`}>Month</button>
             <button onClick={() => setViewMode("week")} className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase transition-all ${viewMode === "week" ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"}`}>Week</button>
@@ -151,10 +151,10 @@ export default function MasterCalendar() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full min-w-0">
         
         {/* SIDEBAR */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-6 w-full min-w-0">
           <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-[2.5rem]">
             <p className="text-[10px] font-black text-zinc-600 uppercase mb-6 tracking-widest italic text-center">Execution Pillars</p>
             <div className="space-y-2">
@@ -169,9 +169,9 @@ export default function MasterCalendar() {
         </div>
 
         {/* CALENDAR GRID */}
-        <div className="lg:col-span-9 bg-zinc-900/10 border border-zinc-800 rounded-[4rem] p-10 shadow-2xl relative min-h-[700px]">
-          <div className="flex justify-between items-center mb-10 px-4">
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter">
+        <div className="lg:col-span-9 w-full min-w-0 bg-zinc-900/10 border border-zinc-800 rounded-[2rem] sm:rounded-[4rem] p-4 sm:p-6 lg:p-10 shadow-2xl relative min-h-[700px]">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 px-1 sm:px-4 w-full min-w-0">
+            <h2 className="text-2xl sm:text-4xl font-black italic uppercase tracking-tighter break-words min-w-0">
               {viewMode === "month" ? `${monthName} ` : "Week Of "} 
               <span className="text-zinc-800">{viewMode === "month" ? year : `${viewDate.getDate()} ${monthName}`}</span>
             </h2>
@@ -183,7 +183,8 @@ export default function MasterCalendar() {
           </div>
 
           {viewMode === "month" ? (
-            <div className="grid grid-cols-7 gap-px bg-zinc-800/50 border border-zinc-800/50 rounded-[2rem] overflow-hidden">
+            <div className="overflow-x-auto custom-scrollbar w-full min-w-0">
+            <div className="grid grid-cols-7 gap-px bg-zinc-800/50 border border-zinc-800/50 rounded-[2rem] overflow-hidden min-w-[720px]">
               {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map(wd => (
                 <div key={wd} className="bg-zinc-900/50 py-5 text-center text-[10px] font-black text-zinc-600 tracking-[0.3em] uppercase">{wd}</div>
               ))}
@@ -210,8 +211,10 @@ export default function MasterCalendar() {
                 );
               })}
             </div>
+            </div>
           ) : (
-            <div className="grid grid-cols-7 gap-4">
+            <div className="overflow-x-auto custom-scrollbar w-full min-w-0">
+            <div className="grid grid-cols-7 gap-4 min-w-[840px]">
               {weekDaysArray.map((dateObj, idx) => {
                 const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                 const dayAppts = filteredAppts.filter(a => a.date === dateStr);
@@ -235,6 +238,7 @@ export default function MasterCalendar() {
                 );
               })}
             </div>
+            </div>
           )}
         </div>
       </div>
@@ -242,21 +246,21 @@ export default function MasterCalendar() {
       {/* MODAL FORM (Handles Add & Edit) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] flex items-center justify-center p-6">
-          <form onSubmit={handleSave} className="bg-zinc-900 border border-zinc-800 p-12 rounded-[4rem] max-w-2xl w-full shadow-2xl">
+          <form onSubmit={handleSave} className="bg-zinc-900 border border-zinc-800 p-6 sm:p-12 rounded-[2rem] sm:rounded-[4rem] max-w-2xl w-full min-w-0 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-start mb-10">
-              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">
+              <h2 className="text-3xl sm:text-4xl font-black italic uppercase tracking-tighter text-white break-words">
                 {editingId ? "Edit" : "Schedule"}<br/><span className="text-zinc-700">Timeline Entry</span>
               </h2>
               <button type="button" onClick={() => setIsModalOpen(false)}><X className="w-8 h-8 text-zinc-600 hover:text-white transition-colors" /></button>
             </div>
             
-            <div className="grid grid-cols-2 gap-6">
-              <input required value={formState.title} onChange={e => setFormState({...formState, title: e.target.value})} className="col-span-2 bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-bold focus:border-[#facc15] outline-none text-white transition-all" placeholder="Entry Title" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full min-w-0">
+              <input required value={formState.title} onChange={e => setFormState({...formState, title: e.target.value})} className="col-span-1 sm:col-span-2 w-full min-w-0 bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-bold focus:border-[#facc15] outline-none text-white transition-all" placeholder="Entry Title" />
               <select value={formState.day} onChange={e => setFormState({...formState, day: parseInt(e.target.value)})} className="bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-bold text-white outline-none focus:border-[#facc15]">
                 {daysArray.map(d => <option key={d} value={d}>The {d}th</option>)}
               </select>
               <input required type="time" value={formState.time} onChange={e => setFormState({...formState, time: e.target.value})} className="bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-bold text-white outline-none focus:border-[#facc15]" />
-              <select value={formState.pillar} onChange={e => setFormState({...formState, pillar: e.target.value})} className="col-span-2 bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-black italic text-[#facc15] outline-none">
+              <select value={formState.pillar} onChange={e => setFormState({...formState, pillar: e.target.value})} className="col-span-1 sm:col-span-2 w-full min-w-0 bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-black italic text-[#facc15] outline-none">
                 {["SBA", "Dominion", "AlliO", "Property", "Personal", "Creative"].map(p => (
                    <option key={p} value={p}>{p.toUpperCase()} PILLAR</option>
                 ))}

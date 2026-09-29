@@ -151,7 +151,7 @@ export default function ExecutionPlaybookOS() {
   };
 
   return (
-    <div className="bg-[#050505] min-h-screen text-zinc-100 p-4 md:p-12 font-sans overflow-x-hidden">
+    <div className="bg-[#050505] min-h-screen text-zinc-100 p-4 md:p-12 font-sans overflow-x-hidden w-full min-w-0 max-w-vw">
       
       {/* 1. COMMAND HEADER */}
       <header className="mb-20 border-b border-zinc-900 pb-12">
@@ -160,10 +160,10 @@ export default function ExecutionPlaybookOS() {
           <p className="text-[#00f2ff] font-black text-[10px] tracking-[0.5em] uppercase italic">System: Complete Plan v2.0</p>
         </div>
         <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
-          <h1 className="text-8xl md:text-[12rem] font-black italic uppercase tracking-tighter leading-[0.8]">
+          <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black italic uppercase tracking-tighter leading-[0.85] break-words">
             THE <span className="text-zinc-800">VAULT</span>
           </h1>
-          <div className="grid grid-cols-2 gap-4 w-full lg:w-96">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full min-w-0 lg:max-w-sm">
             <StatCard label="Year 1 Target" value={FULL_PLAN_DATABASE.long_term.month_12} />
             <StatCard label="Sprint Phase" value="Months 1-3" color="text-red-500" />
           </div>
@@ -171,7 +171,7 @@ export default function ExecutionPlaybookOS() {
       </header>
 
       {/* 2. NAVIGATION OVERRIDE */}
-      <nav className="flex flex-wrap gap-4 mb-16">
+      <nav className="flex gap-4 mb-16 overflow-x-auto custom-scrollbar w-full min-w-0 pb-2">
         <NavBtn active={view === "schedule"} onClick={() => setView("schedule")} label="Execution Rhythm" />
         <NavBtn active={view === "roadmap"} onClick={() => setView("roadmap")} label="90-Day Roadmap" />
         <NavBtn active={view === "negotiation"} onClick={() => setView("negotiation")} label="Negotiation Script" />
@@ -179,15 +179,15 @@ export default function ExecutionPlaybookOS() {
       </nav>
 
       {/* 3. DYNAMIC CONTENT ENGINE */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 w-full min-w-0">
         
         {/* LEFT COLUMN: THE DATA FEED */}
-        <div className="lg:col-span-8 space-y-12">
+        <div className="lg:col-span-8 space-y-12 w-full min-w-0">
           
           {/* VIEW: DAILY SCHEDULE (EXACT) */}
           {view === "schedule" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="flex gap-2 overflow-x-auto pb-6 mb-8 no-scrollbar">
+              <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-6 mb-8 w-full min-w-0">
                 {Object.keys(FULL_PLAN_DATABASE.master_schedule).map(day => (
                   <button 
                     key={day}
@@ -208,7 +208,7 @@ export default function ExecutionPlaybookOS() {
                           <Clock className="w-4 h-4 text-[#00f2ff]" />
                           <span className="text-[10px] font-black text-[#00f2ff] uppercase tracking-widest">{block.time}</span>
                         </div>
-                        <h3 className={`text-4xl font-black italic uppercase tracking-tighter mb-4 ${completedTasks[`${activeDay}-${i}`] ? "text-zinc-600 line-through" : "text-white"}`}>
+                        <h3 className={`text-xl sm:text-2xl lg:text-3xl font-black italic uppercase tracking-tighter mb-4 break-words ${completedTasks[`${activeDay}-${i}`] ? "text-zinc-600 line-through" : "text-white"}`}>
                           {block.task}
                         </h3>
                         <div className="bg-black/50 p-6 rounded-2xl border border-zinc-800">
@@ -235,7 +235,7 @@ export default function ExecutionPlaybookOS() {
                 <div key={i} className="bg-zinc-900/20 border-2 border-zinc-800 rounded-[4rem] p-12">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-10 pb-6 border-b border-zinc-800">
                     <div>
-                      <h2 className="text-6xl font-black italic uppercase tracking-tighter text-[#00f2ff]">{phase.month}</h2>
+                      <h2 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter text-[#00f2ff] break-words">{phase.month}</h2>
                       <p className="text-zinc-500 font-black text-xs uppercase tracking-widest mt-2 italic">Target: {phase.revenue}</p>
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export default function ExecutionPlaybookOS() {
           {view === "negotiation" && (
             <div className="space-y-12 animate-in fade-in duration-500">
               <div className="bg-zinc-900/40 border border-zinc-800 p-12 rounded-[4rem]">
-                <h2 className="text-4xl font-black italic uppercase text-[#00f2ff] mb-8">Tuesday Protocol</h2>
+                <h2 className="text-2xl sm:text-4xl font-black italic uppercase text-[#00f2ff] mb-8 break-words">Tuesday Protocol</h2>
                 <div className="bg-black p-10 rounded-[2.5rem] border border-zinc-800 mb-10">
                   <p className="text-2xl font-black italic text-zinc-100 uppercase leading-relaxed">
                     "{FULL_PLAN_DATABASE.negotiation.script_intro}"
@@ -287,7 +287,7 @@ export default function ExecutionPlaybookOS() {
         </div>
 
         {/* RIGHT COLUMN: REVENUE & FLYWHEEL PILLARS */}
-        <aside className="lg:col-span-4 space-y-8">
+        <aside className="lg:col-span-4 space-y-8 w-full min-w-0">
           <div className="bg-zinc-900 p-10 rounded-[4rem] border border-zinc-800">
             <h3 className="text-xs font-black uppercase tracking-[0.4em] italic text-zinc-600 mb-8 flex items-center gap-3">
                <DollarSign className="w-4 h-4" /> Revenue Pillars
@@ -319,9 +319,9 @@ export default function ExecutionPlaybookOS() {
         </aside>
       </div>
 
-      <footer className="mt-32 pt-12 border-t border-zinc-900 flex justify-between items-center opacity-40 hover:opacity-100 transition-opacity">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] italic text-zinc-700">Reality Check: The first 90 days require a 90-hour commitment to reach the exit threshold.</p>
-        <div className="flex gap-4">
+      <footer className="mt-16 md:mt-32 pt-12 border-t border-zinc-900 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 opacity-40 hover:opacity-100 transition-opacity w-full min-w-0">
+        <p className="text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.4em] italic text-zinc-700 break-words">Reality Check: The first 90 days require a 90-hour commitment to reach the exit threshold.</p>
+        <div className="flex flex-wrap gap-4">
            <div className="px-4 py-2 bg-zinc-900 rounded-lg text-[8px] font-black uppercase text-zinc-500 italic">Playbook Integrated</div>
            <div className="px-4 py-2 bg-zinc-900 rounded-lg text-[8px] font-black uppercase text-zinc-500 italic">Source: Complete Plan</div>
         </div>
@@ -333,9 +333,9 @@ export default function ExecutionPlaybookOS() {
 // SUB-COMPONENTS
 function StatCard({ label, value, color = "text-[#00f2ff]" }: any) {
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem]">
-      <p className="text-[9px] font-black uppercase text-zinc-500 italic mb-1 tracking-widest">{label}</p>
-      <p className={`text-xl font-black italic tracking-tighter uppercase ${color}`}>{value}</p>
+    <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-[2rem] w-full min-w-0">
+      <p className="text-[9px] font-black uppercase text-zinc-500 italic mb-1 tracking-widest break-words">{label}</p>
+      <p className={`text-lg sm:text-xl font-black italic tracking-tighter uppercase break-words ${color}`}>{value}</p>
     </div>
   );
 }
@@ -344,7 +344,7 @@ function NavBtn({ active, onClick, label }: any) {
   return (
     <button 
       onClick={onClick}
-      className={`px-10 py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-widest italic transition-all border-2 ${active ? "bg-[#00f2ff] border-[#00f2ff] text-black shadow-[0_0_40px_rgba(0,242,255,0.3)]" : "bg-transparent border-zinc-800 text-zinc-600 hover:text-white"}`}
+      className={`shrink-0 px-5 sm:px-10 py-4 sm:py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-widest italic transition-all border-2 ${active ? "bg-[#00f2ff] border-[#00f2ff] text-black shadow-[0_0_40px_rgba(0,242,255,0.3)]" : "bg-transparent border-zinc-800 text-zinc-600 hover:text-white"}`}
     >
       {label}
     </button>

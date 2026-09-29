@@ -34,11 +34,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6">
-        <form onSubmit={handleLogin} className="bg-zinc-900/40 border border-zinc-800 p-12 rounded-[4rem] max-w-md w-full shadow-2xl backdrop-blur-xl">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="p-4 bg-black border border-zinc-800 rounded-2xl text-[#00f2ff]"><Lock className="w-6 h-6" /></div>
-            <h1 className="text-4xl font-black italic uppercase tracking-tighter">Vault <span className="text-zinc-700">Access</span></h1>
+      <div className="min-h-screen w-full max-w-vw overflow-x-hidden bg-[#020202] flex items-center justify-center p-4 sm:p-6">
+        <form onSubmit={handleLogin} className="bg-zinc-900/40 border border-zinc-800 p-6 sm:p-12 rounded-[2rem] sm:rounded-[4rem] max-w-md w-full min-w-0 shadow-2xl backdrop-blur-xl">
+          <div className="flex items-center gap-4 mb-10 min-w-0">
+            <div className="p-4 bg-black border border-zinc-800 rounded-2xl text-[#00f2ff] shrink-0"><Lock className="w-6 h-6" /></div>
+            <h1 className="text-2xl sm:text-4xl font-black italic uppercase tracking-tighter break-words">Vault <span className="text-zinc-700">Access</span></h1>
           </div>
           
           <div className="space-y-6">

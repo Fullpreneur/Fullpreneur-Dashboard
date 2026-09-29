@@ -88,16 +88,16 @@ export default function SBAManager() {
   );
 
   return (
-    <div className="p-8 bg-[#050505] min-h-screen text-white font-sans selection:bg-[#facc15]/30">
+    <div className="p-4 sm:p-6 md:p-8 bg-[#050505] min-h-screen w-full min-w-0 overflow-x-hidden text-white font-sans selection:bg-[#facc15]/30">
       
       {/* --- LEVEL 1: HEADER & TARGETS --- */}
-      <header className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12 w-full min-w-0">
         <div className="flex items-center gap-6">
           <Link href="/" className="p-4 bg-zinc-900 rounded-[1.5rem] border border-zinc-800 hover:bg-zinc-800 transition-all group">
             <ArrowLeft className="w-6 h-6 text-zinc-500 group-hover:text-white" />
           </Link>
           <div>
-            <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none">
+            <h1 className="text-3xl sm:text-5xl font-black italic uppercase tracking-tighter leading-none break-words">
               SBA 7(a) <span className="text-zinc-800">MANAGER</span>
             </h1>
             <p className="text-[#facc15] font-black text-[10px] uppercase tracking-[0.4em] mt-2 italic">
@@ -106,10 +106,10 @@ export default function SBAManager() {
           </div>
         </div>
 
-        <div className="flex gap-4 w-full lg:w-auto">
-          <div className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-2xl flex-1 lg:min-w-[200px]">
+        <div className="flex flex-col sm:flex-row gap-4 w-full min-w-0 lg:w-auto">
+          <div className="bg-zinc-900/40 border border-zinc-800 p-5 rounded-2xl flex-1 w-full min-w-0">
              <p className="text-[9px] font-black text-zinc-500 uppercase italic">Active Pipeline</p>
-             <p className="text-2xl font-black italic text-[#22c55e]">${leads.reduce((acc, curr) => acc + parseInt(curr.amount.replace(/[^0-9]/g, '') || '0'), 0).toLocaleString()}</p>
+             <p className="text-xl sm:text-2xl font-black italic text-[#22c55e] truncate">${leads.reduce((acc, curr) => acc + parseInt(curr.amount.replace(/[^0-9]/g, '') || '0'), 0).toLocaleString()}</p>
           </div>
           <button 
             onClick={() => setIsModalOpen(true)}
@@ -121,10 +121,10 @@ export default function SBAManager() {
       </header>
 
       {/* --- LEVEL 2: OPERATIONAL GRID --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full min-w-0">
         
         {/* LEFT: BROKER & STRATEGY PANEL */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-6 w-full min-w-0">
           <div className="bg-zinc-900/20 border border-zinc-800 p-8 rounded-[2.5rem]">
             <h3 className="text-[11px] font-black uppercase text-zinc-500 mb-6 italic tracking-widest">Broker Portals</h3>
             <div className="space-y-3">
@@ -153,7 +153,7 @@ export default function SBAManager() {
         </div>
 
         {/* MAIN: THE CRM TABLE --- */}
-        <div className="lg:col-span-9 bg-zinc-900/20 border border-zinc-800 rounded-[3.5rem] overflow-hidden flex flex-col">
+        <div className="lg:col-span-9 w-full min-w-0 bg-zinc-900/20 border border-zinc-800 rounded-[2rem] sm:rounded-[3.5rem] overflow-hidden flex flex-col">
           
           {/* TABS CONTROLLER */}
           <div className="flex border-b border-zinc-800 bg-zinc-900/10">
@@ -186,8 +186,8 @@ export default function SBAManager() {
           </div>
 
           {/* TABLE DATA */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto custom-scrollbar w-full min-w-0">
+            <table className="w-full min-w-[720px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-zinc-800 text-[10px] font-black uppercase text-zinc-600 tracking-widest italic">
                   <th className="px-10 py-6">Company & Lead</th>
@@ -200,7 +200,7 @@ export default function SBAManager() {
                 {filteredLeads.length > 0 ? filteredLeads.map(lead => (
                   <tr key={lead.id} className="hover:bg-white/[0.02] group transition-colors">
                     <td className="px-10 py-8">
-                      <p className="text-xl font-black italic uppercase text-white leading-none mb-2">{lead.name}</p>
+                      <p className="text-lg sm:text-xl font-black italic uppercase text-white leading-none mb-2 break-words">{lead.name}</p>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-zinc-500 font-bold uppercase italic">{lead.contact}</span>
                         <div className="w-1 h-1 rounded-full bg-zinc-800" />

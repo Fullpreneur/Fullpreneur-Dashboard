@@ -12,8 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-black text-white antialiased">
+    <html lang="en" className="overflow-x-hidden max-w-vw">
+      <body className="bg-black text-white antialiased overflow-x-hidden max-w-vw">
         {/* We removed Sidebar and AuthGuard from here */}
         {/* Now, the Landing Page and Login can load freely */}
         {children}
