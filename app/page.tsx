@@ -138,22 +138,22 @@ export default function LandingPage() {
       </section>
 
       {/* --- THE 50-QUESTION DIAGNOSTIC PREVIEW --- */}
-      <section id="diagnostic" className="py-40 px-6 bg-[#00f2ff]">
-        <div className="max-w-5xl mx-auto text-black text-center">
-          <h2 className="text-7xl md:text-9xl font-black italic uppercase tracking-tighter leading-[0.8] mb-12">
+      <section id="diagnostic" className="py-16 sm:py-24 md:py-40 px-4 sm:px-6 bg-[#00f2ff]">
+        <div className="max-w-5xl mx-auto text-black text-center w-full min-w-0">
+          <h2 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black italic uppercase tracking-tighter leading-[0.85] mb-8 sm:mb-12 break-words">
             INITIAL <br /> DIAGNOSTIC
           </h2>
-          <p className="text-2xl font-black italic uppercase mb-16 max-w-2xl mx-auto opacity-80">
+          <p className="text-base sm:text-xl md:text-2xl font-black italic uppercase mb-10 sm:mb-16 max-w-2xl mx-auto opacity-80 break-words px-2">
             We don't sell access. We grant clearance. Take the 50-question audit to determine your custom OS configuration.
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8 mb-10 sm:mb-20">
             <DiagnosticStep number="01" text="Define Revenue Pillars" />
             <DiagnosticStep number="02" text="Map ADHD Friction" />
             <DiagnosticStep number="03" text="Generate Control Center" />
           </div>
 
-          <Link href="/quiz" className="inline-block px-24 py-10 bg-black text-white font-black uppercase italic tracking-[0.3em] rounded-full hover:scale-105 transition-all shadow-2xl">
+          <Link href="/quiz" className="inline-flex max-w-full items-center justify-center px-6 sm:px-12 md:px-20 py-5 sm:py-8 bg-black text-white font-black uppercase italic tracking-[0.12em] sm:tracking-[0.3em] text-xs sm:text-sm rounded-full hover:scale-105 transition-all shadow-2xl">
             Start Questionnaire
           </Link>
         </div>
@@ -200,9 +200,9 @@ function ProblemItem({ title, desc }: any) {
 
 function DiagnosticStep({ number, text }: any) {
   return (
-    <div className="border-4 border-black p-8 rounded-[3rem]">
-      <p className="text-5xl font-black italic mb-4">{number}</p>
-      <p className="text-sm font-black uppercase tracking-widest">{text}</p>
+    <div className="border-4 border-black p-6 sm:p-8 rounded-[2rem] sm:rounded-[3rem] min-w-0">
+      <p className="text-3xl sm:text-5xl font-black italic mb-4">{number}</p>
+      <p className="text-xs sm:text-sm font-black uppercase tracking-wide sm:tracking-widest break-words">{text}</p>
     </div>
   );
 }

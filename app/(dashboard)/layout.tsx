@@ -50,12 +50,14 @@ export default function DashboardLayout({
         ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         <Sidebar />
-        <button 
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="lg:hidden absolute top-6 right-[-50px] p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white"
-        >
-          <X size={20} />
-        </button>
+        {isMobileMenuOpen && (
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden absolute top-6 right-[-50px] p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       {/* OVERLAY */}
