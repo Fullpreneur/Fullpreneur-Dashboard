@@ -1,12 +1,6 @@
 // Database types for Total Flywheel database
 
-export type LeadType =
-  | "dominion_sponsors"
-  | "sba_leads"
-  | "trimlight_residential"
-  | "trimlight_commercial"
-  | "rooted_homeowners"
-  | "rooted_providers";
+export type LeadType = "customer" | "partner" | "referral" | "other";
 
 export type LeadStage =
   | "lead"
@@ -26,12 +20,11 @@ export interface Lead {
   stage: LeadStage;
   value?: number;
   notes?: string;
-  // Smart fields based on lead type
-  loan_amount?: number; // SBA Leads
-  underwriting_stage?: string; // SBA Leads
-  is_commercial?: boolean; // Trimlight (true = commercial, false = residential)
-  sponsorship_asset?: string; // Dominion Sponsors
-  referral_partner?: string; // Landscaping leads
+  loan_amount?: number;
+  underwriting_stage?: string;
+  is_commercial?: boolean;
+  sponsorship_asset?: string;
+  referral_partner?: string;
   created_at: string;
   updated_at: string;
 }
@@ -83,15 +76,6 @@ export interface RevenueStream {
   updated_at: string;
 }
 
-export type RevenueStreamName =
-  | "dominion_raceway"
-  | "rooted"
-  | "trimlight_residential"
-  | "trimlight_commercial"
-  | "sba_funding"
-  | "allio_saas"
-  | "octane_nation";
-
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -99,7 +83,7 @@ export interface CalendarEvent {
   start_time: string;
   end_time: string;
   date: string;
-  type: "dominion" | "coding" | "meeting" | "personal";
+  type: "work" | "coding" | "meeting" | "personal";
   location?: string;
   created_at: string;
   updated_at: string;

@@ -18,8 +18,9 @@ export default function MasterCalendar() {
   // --- 2. EDITING/FORM STATE ---
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formState, setFormState] = useState({ 
-    title: "", time: "09:00", day: 19, pillar: "SBA", contact: "", is_lead: false 
+    title: "", time: "09:00", day: 19,     pillar: "", contact: "", is_lead: false 
   });
+  const [pillars, setPillars] = useState<string[]>([]);
 
   // --- 3. DATABASE ACTIONS ---
   useEffect(() => {
@@ -36,6 +37,18 @@ export default function MasterCalendar() {
     if (!userId) return;
     const { data, error } = await supabase.from('appointments').select('*').eq('user_id', userId);
     if (!error && data) setAppointments(data);
+    const [profileRes, oppRes] = await Promise.all([
+      supabase.from("profiles").select("quiz_responses").eq("user_id", userId).maybeSingle(),
+      supabase.from("opportunities").select("id, name, status, notes, current_revenue, target_revenue").eq("user_id", userId),
+    ]);
+    const { asQuizResponses } = await import("@/lib/quiz/profile");
+    const { mergeOpportunities, opportunitiesFromQuiz } = await import("@/lib/opportunities");
+    const merged = mergeOpportunities(
+      oppRes.error ? [] : oppRes.data,
+      opportunitiesFromQuiz(asQuizResponses(profileRes.data?.quiz_responses))
+    );
+    const fromAppointments = (data || []).map((item: { pillar?: string }) => item.pillar).filter(Boolean) as string[];
+    setPillars(Array.from(new Set([...merged.map((item) => item.name), ...fromAppointments])));
   };
 
   const openAddModal = () => {
@@ -44,7 +57,7 @@ export default function MasterCalendar() {
       title: "", 
       time: "09:00", 
       day: viewDate.getDate(), 
-      pillar: "SBA", 
+      pillar: pillars[0] || "", 
       contact: "", 
       is_lead: false 
     });
@@ -171,7 +184,7 @@ export default function MasterCalendar() {
           <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-[2.5rem]">
             <p className="text-[10px] font-black text-zinc-600 uppercase mb-6 tracking-widest italic text-center">Execution Pillars</p>
             <div className="space-y-2">
-              {["All", "SBA", "Dominion", "AlliO", "Property", "Personal", "Creative"].map(p => (
+              {["All", ...(pillars.length ? pillars : [])].map(p => (
                 <button key={p} onClick={() => setSelectedPillar(p)} className={`w-full p-4 rounded-xl flex justify-between items-center transition-all border ${selectedPillar === p ? 'bg-[#facc15] text-black border-[#facc15]' : 'bg-black/40 text-zinc-500 border-zinc-800 hover:border-zinc-600'}`}>
                   <span className="text-[10px] font-black uppercase italic tracking-widest">{p}</span>
                   <span className="text-[10px] font-bold opacity-30">{appointments.filter(a => a.pillar === p || p === "All").length}</span>
@@ -273,11 +286,16 @@ export default function MasterCalendar() {
                 {daysArray.map(d => <option key={d} value={d}>The {d}th</option>)}
               </select>
               <input required type="time" value={formState.time} onChange={e => setFormState({...formState, time: e.target.value})} className="bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-bold text-white outline-none focus:border-[#facc15]" />
+              {pillars.length > 0 ? (
               <select value={formState.pillar} onChange={e => setFormState({...formState, pillar: e.target.value})} className="col-span-1 sm:col-span-2 w-full min-w-0 bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-black italic text-[#facc15] outline-none">
-                {["SBA", "Dominion", "AlliO", "Property", "Personal", "Creative"].map(p => (
-                   <option key={p} value={p}>{p.toUpperCase()} PILLAR</option>
+                <option value="">Opportunity</option>
+                {pillars.map(p => (
+                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
+              ) : (
+              <input value={formState.pillar} onChange={e => setFormState({...formState, pillar: e.target.value})} className="col-span-1 sm:col-span-2 w-full min-w-0 bg-black border border-zinc-800 p-6 rounded-2xl text-sm font-black italic text-[#facc15] outline-none" placeholder="Opportunity" />
+              )}
             </div>
 
             <div className="mt-8 flex items-center justify-between p-6 bg-black border border-zinc-800 rounded-3xl">

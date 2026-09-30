@@ -9,12 +9,10 @@ CREATE TABLE IF NOT EXISTS leads (
   email TEXT NOT NULL,
   phone TEXT NOT NULL,
   lead_type TEXT NOT NULL CHECK (lead_type IN (
-    'dominion_sponsors',
-    'sba_leads',
-    'trimlight_residential',
-    'trimlight_commercial',
-    'rooted_homeowners',
-    'rooted_providers'
+    'customer',
+    'partner',
+    'referral',
+    'other'
   )),
   stage TEXT NOT NULL DEFAULT 'lead' CHECK (stage IN (
     'lead',
@@ -26,12 +24,11 @@ CREATE TABLE IF NOT EXISTS leads (
   )),
   value NUMERIC,
   notes TEXT,
-  -- Smart fields based on lead type
-  loan_amount NUMERIC, -- SBA Leads
-  underwriting_stage TEXT, -- SBA Leads
-  is_commercial BOOLEAN, -- Trimlight (true = commercial, false = residential)
-  sponsorship_asset TEXT, -- Dominion Sponsors
-  referral_partner TEXT, -- Landscaping leads
+  loan_amount NUMERIC,
+  underwriting_stage TEXT,
+  is_commercial BOOLEAN,
+  sponsorship_asset TEXT,
+  referral_partner TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -93,7 +90,7 @@ CREATE TABLE IF NOT EXISTS calendar_events (
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   date DATE NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('dominion', 'coding', 'meeting', 'personal')),
+  type TEXT NOT NULL CHECK (type IN ('work', 'coding', 'meeting', 'personal')),
   location TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

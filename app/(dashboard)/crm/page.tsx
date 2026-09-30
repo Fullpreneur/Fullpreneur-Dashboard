@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { supabase } from "../calendar/supabase"; 
+import { supabase } from "../calendar/supabase";
+import { asQuizResponses } from "@/lib/quiz/profile";
+import { mergeOpportunities, opportunitiesFromQuiz } from "@/lib/opportunities"; 
 import { 
   Plus, Search, X, User, Mail, Phone, 
   ChevronRight, ArrowUpRight, Zap, Building2, 
@@ -22,15 +24,34 @@ export default function LeadVault() {
   // --- 2. THE FULL DATASET (UNABRIDGED) ---
   const [newLead, setNewLead] = useState({
     full_name: "", email: "", phone: "", address: "",
-    pillar: "Dominion", status: "New Lead", service_interest: "", notes: ""
+    pillar: "", status: "New Lead", service_interest: "", notes: ""
   });
+  const [pillars, setPillars] = useState<string[]>([]);
 
   const [newEvent, setNewEvent] = useState({
-    title: "", start_date: "", description: "", pillar: "Dominion"
+    title: "", start_date: "", description: "", pillar: ""
   });
 
   // --- 3. THE ENGINE ---
   useEffect(() => { fetchLeads(); }, []);
+
+  useEffect(() => {
+    const loadPillars = async () => {
+      const userId = await currentUserId();
+      if (!userId) return;
+      const [profileRes, oppRes] = await Promise.all([
+        supabase.from("profiles").select("quiz_responses").eq("user_id", userId).maybeSingle(),
+        supabase.from("opportunities").select("id, name, status, notes, current_revenue, target_revenue").eq("user_id", userId),
+      ]);
+      const merged = mergeOpportunities(
+        oppRes.error ? [] : oppRes.data,
+        opportunitiesFromQuiz(asQuizResponses(profileRes.data?.quiz_responses))
+      );
+      const fromLeads = leads.map((lead) => lead.pillar).filter(Boolean);
+      setPillars(Array.from(new Set([...merged.map((item) => item.name), ...fromLeads])));
+    };
+    loadPillars();
+  }, [leads]);
 
   async function currentUserId() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -56,7 +77,7 @@ export default function LeadVault() {
     if (!error && data) {
       setLeads([data[0], ...leads]);
       setIsModalOpen(false);
-      setNewLead({ full_name: "", email: "", phone: "", address: "", pillar: "Dominion", status: "New Lead", service_interest: "", notes: "" });
+      setNewLead({ full_name: "", email: "", phone: "", address: "", pillar: pillars[0] || "", status: "New Lead", service_interest: "", notes: "" });
     }
     setIsSaving(false);
   }
@@ -117,7 +138,7 @@ export default function LeadVault() {
         
         <div className="flex flex-col gap-6 items-stretch lg:items-end w-full min-w-0">
           <div className="bg-zinc-900/40 p-3 rounded-3xl border border-zinc-800/50 flex gap-2 backdrop-blur-xl shadow-2xl overflow-x-auto custom-scrollbar w-full max-w-full">
-            {["All", "Dominion", "SBA", "Property Improvements", "AlliO"].map(p => (
+            {["All", ...pillars].map(p => (
               <button 
                 key={p} 
                 onClick={() => setActiveFilter(p)} 
@@ -140,10 +161,15 @@ export default function LeadVault() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-16 w-full min-w-0">
         {[
           { label: "Total Pipeline", val: leads.length, color: "text-white", icon: LayoutGrid, shadow: "shadow-white/5" },
-          { label: "Dominion", val: leads.filter(l => l.pillar === "Dominion").length, color: "text-[#00f2ff]", icon: Zap, shadow: "shadow-[#00f2ff]/5" },
-          { label: "SBA Sync", val: leads.filter(l => l.pillar === "SBA").length, color: "text-emerald-400", icon: Shield, shadow: "shadow-emerald-400/5" },
-          { label: "Property Improvements", val: leads.filter(l => l.pillar === "Property Improvements").length, color: "text-[#facc15]", icon: Building2, shadow: "shadow-[#facc15]/5" },
-          { label: "AlliO Ecosystem", val: leads.filter(l => l.pillar === "AlliO").length, color: "text-purple-400", icon: Globe, shadow: "shadow-purple-400/5" },
+          ...(pillars.length
+            ? pillars.slice(0, 4).map((name) => ({
+                label: name,
+                val: leads.filter(l => l.pillar === name).length,
+                color: "text-[#00f2ff]",
+                icon: Briefcase,
+                shadow: "shadow-[#00f2ff]/5",
+              }))
+            : [{ label: "Opportunities", val: 0, color: "text-zinc-500", icon: Briefcase, shadow: "shadow-white/5" }]),
         ].map((stat, i) => (
           <div key={i} className={`w-full min-w-0 bg-zinc-900/20 border border-zinc-800/80 p-6 sm:p-10 rounded-[3rem] group hover:border-zinc-500 transition-all cursor-default shadow-2xl ${stat.shadow}`}>
             <div className="flex justify-between items-start mb-8">
@@ -318,9 +344,14 @@ export default function LeadVault() {
               <input value={newLead.address} onChange={e => setNewLead({...newLead, address: e.target.value})} className="col-span-1 md:col-span-2 w-full min-w-0 bg-black border-2 border-zinc-800 p-6 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] text-lg font-bold text-white outline-none focus:border-[#00f2ff] transition-all uppercase" placeholder="PROPERTY / TARGET STREET ADDRESS" />
               
               <div className="relative group">
+                {pillars.length > 0 ? (
                 <select value={newLead.pillar} onChange={e => setNewLead({...newLead, pillar: e.target.value})} className="w-full bg-black border-2 border-zinc-800 p-10 rounded-[3rem] text-sm font-black italic text-[#00f2ff] outline-none uppercase tracking-widest appearance-none cursor-pointer">
-                  {["Dominion", "SBA", "Property Improvements", "AlliO"].map(p => <option key={p} value={p}>{p} PILLAR</option>)}
+                  <option value="">Opportunity</option>
+                  {pillars.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
+                ) : (
+                <input value={newLead.pillar} onChange={e => setNewLead({...newLead, pillar: e.target.value})} className="w-full bg-black border-2 border-zinc-800 p-10 rounded-[3rem] text-sm font-black italic text-[#00f2ff] outline-none uppercase tracking-widest" placeholder="OPPORTUNITY NAME" />
+                )}
                 <div className="absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-700 font-black">▼</div>
               </div>
               

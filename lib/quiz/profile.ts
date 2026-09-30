@@ -150,7 +150,7 @@ export function focusForArea(id: QuizAreaId, responses: Record<string, any>): Qu
       return {
         task: "Close the revenue gap",
         stream: "REVENUE",
-        path: "/opportunities/sba",
+        path: "/crm",
         next: firstText(responses.q15) || firstText(responses.q35) || "Pick the stream you start first",
       };
     case "capacity":

@@ -1,12 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation"; // Added useRouter
-import { createClient } from "@/lib/supabase/client"; // Added for Logout
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { asQuizResponses } from "@/lib/quiz/profile";
+import { mergeOpportunities, opportunitiesFromQuiz } from "@/lib/opportunities";
 import { 
-  Home, Users, Calendar, Palette, Database, 
-  Trophy, Zap, Home as House, Briefcase, Globe, CheckCircle2,
-  LogOut // Added icon
+  Home, Users, Calendar, Palette, Database, Briefcase, LogOut
 } from "lucide-react";
 
 const navigation = [
@@ -17,19 +18,37 @@ const navigation = [
   { name: "The Vault", href: "/vault", icon: Database },
 ];
 
-const opportunities = [
-  { name: "Dominion Raceway", href: "/opportunities/dominion", icon: Trophy },
-  { name: "SBA Funding", href: "/opportunities/sba", icon: Briefcase },
-  { name: "Property Improvement", href: "/opportunities/property-improvement", icon: House },
-  { name: "AlliO SaaS", href: "/opportunities/allio", icon: Zap },
-  { name: "Octane Nation", href: "/opportunities/octane-nation", icon: Globe },
-  { name: "Rooted Marketplace", href: "/opportunities/rooted", icon: CheckCircle2 },
-];
-
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [opportunities, setOpportunities] = useState<{ name: string; href: string }[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const client = createClient();
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) {
+        if (!cancelled) setOpportunities([]);
+        return;
+      }
+      const [profileRes, oppRes] = await Promise.all([
+        client.from("profiles").select("quiz_responses").eq("user_id", user.id).maybeSingle(),
+        client.from("opportunities").select("id, name, status, notes, current_revenue, target_revenue").eq("user_id", user.id),
+      ]);
+      if (cancelled) return;
+      const merged = mergeOpportunities(
+        oppRes.error ? [] : oppRes.data,
+        opportunitiesFromQuiz(asQuizResponses(profileRes.data?.quiz_responses))
+      );
+      setOpportunities(merged.map((item) => ({ name: item.name, href: item.href })));
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -74,11 +93,16 @@ export default function Sidebar() {
         <div>
           <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-3 px-3 italic">Opportunities</h3>
           <div className="space-y-1">
-            {opportunities.map((item) => {
+            {opportunities.length === 0 ? (
+              <Link href="/quiz" className="group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-zinc-500 hover:text-zinc-200 min-w-0">
+                <Briefcase className="w-4 h-4 shrink-0 text-zinc-500" />
+                <span className="truncate">Complete diagnostic</span>
+              </Link>
+            ) : opportunities.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link key={item.name} href={item.href} className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all min-w-0 ${isActive ? "bg-zinc-900 text-[#00f2ff] border border-[#00f2ff]/20" : "text-zinc-500 hover:text-zinc-200"}`}>
-                  <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#00f2ff]" : "text-zinc-500 group-hover:text-[#00f2ff]/70"}`} />
+                <Link key={item.href} href={item.href} className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all min-w-0 ${isActive ? "bg-zinc-900 text-[#00f2ff] border border-[#00f2ff]/20" : "text-zinc-500 hover:text-zinc-200"}`}>
+                  <Briefcase className={`w-4 h-4 shrink-0 ${isActive ? "text-[#00f2ff]" : "text-zinc-500 group-hover:text-[#00f2ff]/70"}`} />
                   <span className="truncate">{item.name}</span>
                 </Link>
               );

@@ -1,34 +1,23 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from '@/lib/supabase/client';
-import { asQuizResponses, focusForArea, profilePayload, QuizAreaId, rankAreas, responsesFromStorage, scoreQuiz } from '@/lib/quiz/profile';
+import { asQuizResponses, focusForArea, profilePayload, rankAreas, responsesFromStorage, scoreQuiz } from '@/lib/quiz/profile';
+import {
+  EMPTY_FOCUS_COPY,
+  emptyOpportunity,
+  flywheelFromOpportunities,
+  flywheelFromStreams,
+  FlywheelRow,
+  mergeOpportunities,
+  opportunitiesFromQuiz,
+  UserOpportunity,
+} from '@/lib/opportunities';
 import { 
-  Clock, Calendar, Zap, Target, Activity, 
-  ChevronRight, Play, Trophy, Rocket, 
-  Landmark, Construction, Users, CheckCircle2,
-  TrendingUp, AlertCircle, StopCircle, LayoutGrid,
-  ShieldCheck, FileText, Lock, Share2, DollarSign,
-  ArrowUpRight, BarChart3, Lightbulb, Star, Brain, Fingerprint
+  Calendar, Zap, Target, ChevronRight, Play, StopCircle,
+  ShieldCheck, ArrowUpRight, Star
 } from "lucide-react";
-
-const OPPORTUNITY_HUBS: {
-  name: string;
-  path: string;
-  status: string;
-  task: string;
-  icon: typeof Landmark;
-  color: string;
-  areas: QuizAreaId[];
-}[] = [
-  { name: "SBA FUNDING", path: "/opportunities/sba", status: "OPEN", task: "", icon: Landmark, color: "#facc15", areas: ["revenue", "pipeline"] },
-  { name: "DOMINION", path: "/opportunities/dominion", status: "OPEN", task: "", icon: Trophy, color: "#3b82f6", areas: ["pipeline", "execution"] },
-  { name: "PROPERTY", path: "/opportunities/property-improvement", status: "OPEN", task: "", icon: Construction, color: "#22c55e", areas: ["revenue"] },
-  { name: "ALLIO SAAS", path: "/opportunities/allio", status: "OPEN", task: "", icon: Activity, color: "#00f2ff", areas: ["execution"] },
-  { name: "OCTANE", path: "/opportunities/octane-nation", status: "OPEN", task: "", icon: Rocket, color: "#ef4444", areas: ["pipeline"] },
-  { name: "STRATEGY", path: "/vault", status: "OPEN", task: "", icon: ShieldCheck, color: "#a855f7", areas: ["accountability", "capacity", "fulfillment"] },
-];
 
 export default function UltimateCommandCenter() {
   const supabase = createClient();
@@ -50,6 +39,8 @@ export default function UltimateCommandCenter() {
   } | null>(null);
   const [operator, setOperator] = useState<{ id: string; email: string | null } | null>(null);
   const [hasPendingAudit, setHasPendingAudit] = useState(false);
+  const [opportunities, setOpportunities] = useState<UserOpportunity[]>([]);
+  const [flywheel, setFlywheel] = useState<FlywheelRow[]>([]);
 
   // --- SYSTEM CLOCK ---
   useEffect(() => {
@@ -63,16 +54,20 @@ export default function UltimateCommandCenter() {
       setQuizProfile(null);
       setCrmStats({ fulfillment: 0, capacity: 0, totalLeads: 0, pipelineValue: 0 });
       setHasPendingAudit(false);
+      setOpportunities([]);
+      setFlywheel([]);
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
         setOperator({ id: user.id, email: user.email ?? null });
 
         // Fetch both Appointments (Fulfillment/Capacity) and Leads (Revenue)
-        const [apptsRes, crmRes, leadsRes] = await Promise.all([
+        const [apptsRes, crmRes, leadsRes, oppRes, streamRes] = await Promise.all([
           supabase.from('appointments').select('pillar').eq('user_id', user.id),
           supabase.from('crm_leads').select('deal_value, pillar_tag').eq('user_id', user.id),
-          supabase.from('leads').select('value, deal_value').eq('user_id', user.id)
+          supabase.from('leads').select('value, deal_value').eq('user_id', user.id),
+          supabase.from('opportunities').select('id, name, status, notes, current_revenue, target_revenue').eq('user_id', user.id),
+          supabase.from('revenue_streams').select('stream_name, current_revenue, target_revenue').eq('user_id', user.id)
         ]);
 
         let calculatedFulfillment = 0;
@@ -82,9 +77,8 @@ export default function UltimateCommandCenter() {
         // Process Appointments for Fulfillment Score
         if (apptsRes.data && apptsRes.data.length > 0) {
           const total = apptsRes.data.length;
-          const personalItems = apptsRes.data.filter(a => ['Personal', 'Creative'].includes(a.pillar)).length;
+          const personalItems = apptsRes.data.filter(a => a.pillar === 'Personal').length;
           calculatedFulfillment = Math.round((personalItems / total) * 100);
-          calculatedCapacity = 0;
         }
 
         // Process Leads for Revenue Target
@@ -126,7 +120,8 @@ export default function UltimateCommandCenter() {
           .maybeSingle();
 
         const quizResponses = asQuizResponses(profileRes.data?.quiz_responses);
-        if (!profileRes.error && quizResponses && Object.keys(quizResponses).length > 0) {
+        const hasQuiz = !profileRes.error && quizResponses && Object.keys(quizResponses).length > 0;
+        if (hasQuiz && quizResponses) {
           const scores = scoreQuiz(quizResponses);
           setQuizProfile({
             responses: quizResponses,
@@ -136,6 +131,14 @@ export default function UltimateCommandCenter() {
         } else {
           setQuizProfile(null);
         }
+
+        const accountOpportunities = mergeOpportunities(
+          oppRes.error ? [] : oppRes.data,
+          opportunitiesFromQuiz(hasQuiz ? quizResponses : null)
+        );
+        const accountFlywheel = flywheelFromStreams(streamRes.error ? [] : streamRes.data);
+        setOpportunities(accountOpportunities);
+        setFlywheel(accountFlywheel.length ? accountFlywheel : flywheelFromOpportunities(accountOpportunities));
 
         setCrmStats({
           fulfillment: calculatedFulfillment,
@@ -166,11 +169,11 @@ export default function UltimateCommandCenter() {
   const revenueTarget = quizProfile ? parseFloat(String(quizProfile.responses.q4 ?? "").replace(/[$,]/g, "")) : 0;
   const revenueWidth = revenueTarget > 0 ? Math.min((crmStats.pipelineValue / revenueTarget) * 100, 100) : 0;
   const lowestIds = new Set(quizProfile?.lowest.map((area) => area.id) ?? []);
-  const hubs = [...OPPORTUNITY_HUBS].sort((a, b) => {
-    const aFocus = a.areas.some((id) => lowestIds.has(id)) ? 0 : 1;
-    const bFocus = b.areas.some((id) => lowestIds.has(id)) ? 0 : 1;
-    return aFocus - bFocus;
-  });
+  const opportunityCards = opportunities.length ? opportunities : [emptyOpportunity()];
+  const flywheelRows = flywheel.length
+    ? flywheel
+    : [{ name: "Complete diagnostic to auto-populate", current: 0, target: 0 }];
+  const focusLabel = primaryFocus?.label ?? EMPTY_FOCUS_COPY;
   const milestones = quizProfile
     ? [
         ...quizProfile.lowest.map((area) => ({
@@ -214,8 +217,28 @@ export default function UltimateCommandCenter() {
               <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">0</p>
             </div>
             <div className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem]">
-              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Status</p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#00f2ff] truncate">Empty</p>
+              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Primary Focus</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#00f2ff] truncate">{EMPTY_FOCUS_COPY}</p>
+            </div>
+          </div>
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {opportunityCards.map((card) => (
+              <Link key={card.id} href={card.href} className="w-full min-w-0 bg-zinc-900/30 border border-zinc-800 p-6 rounded-[2rem]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{card.status}</p>
+                <h2 className="mt-3 text-2xl font-black italic uppercase break-words">{card.name}</h2>
+                <p className="mt-2 text-sm text-zinc-400 font-bold italic break-words">{card.detail}</p>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-8 bg-zinc-900/20 border border-zinc-800 p-6 rounded-[2rem]">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Revenue Flywheel</p>
+            <div className="mt-4 space-y-3">
+              {flywheelRows.map((row) => (
+                <div key={row.name} className="flex items-center justify-between gap-4">
+                  <p className="font-black italic uppercase break-words">{row.name}</p>
+                  <p className="font-black shrink-0">${row.current.toLocaleString()}</p>
+                </div>
+              ))}
             </div>
           </div>
           <div className="mt-10">
@@ -239,7 +262,7 @@ export default function UltimateCommandCenter() {
           </h1>
           <div className="flex flex-wrap items-center gap-3 mt-4">
              <div className="bg-[#00f2ff]/10 px-3 py-1 rounded border border-[#00f2ff]/20 max-w-full min-w-0">
-               <p className="text-[#00f2ff] font-black tracking-[0.15em] sm:tracking-[0.4em] text-[9px] uppercase break-words">{primaryFocus ? `Audit focus · ${primaryFocus.label}` : "24-PAGE STRATEGY EXECUTION"}</p>
+               <p className="text-[#00f2ff] font-black tracking-[0.15em] sm:tracking-[0.4em] text-[9px] uppercase break-words">Primary Focus: {focusLabel}</p>
              </div>
              <p className="text-zinc-600 font-bold text-[9px] uppercase">OS_VER_4.0.1</p>
           </div>
@@ -274,8 +297,8 @@ export default function UltimateCommandCenter() {
           {/* SYSTEM STATUS */}
           <div className={`w-full min-w-0 bg-zinc-900/40 border p-5 rounded-[2rem] transition-all ${primaryFocus ? "border-[#facc15]/50" : "border-zinc-800 hover:border-[#00f2ff]/50"}`}>
              <p className="text-[9px] font-black text-zinc-500 tracking-widest mb-1 uppercase">System Status</p>
-             <p className={`text-xl sm:text-2xl lg:text-3xl font-black truncate ${primaryFocus ? "text-[#facc15]" : "text-[#00f2ff]"}`}>{primaryFocus ? primaryFocus.label : "NOMINAL"}</p>
-             <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2">{primaryFocus ? `${primaryFocus.score}/10 · lowest area` : "All Pillars Active"}</p>
+             <p className={`text-xl sm:text-2xl lg:text-3xl font-black truncate ${primaryFocus ? "text-[#facc15]" : "text-[#00f2ff]"}`}>{focusLabel}</p>
+             <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2">{primaryFocus ? `${primaryFocus.score}/10 · lowest area` : EMPTY_FOCUS_COPY}</p>
           </div>
 
           {/* CAPACITY */}
@@ -327,28 +350,36 @@ export default function UltimateCommandCenter() {
 
       {/* 3. OPPORTUNITY GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full min-w-0">
-        {hubs.map((hub, i) => {
-          const hubArea = hub.areas.find((id) => lowestIds.has(id));
-          const hubTask = hubArea ? focusForArea(hubArea, quizProfile.responses).task : "No assignments yet";
-          const hubStatus = hubArea ? "FOCUS" : "OPEN";
-          return (
-          <Link key={i} href={hub.path} className={`w-full min-w-0 bg-zinc-900/30 border p-6 sm:p-8 rounded-[2.5rem] hover:border-zinc-500 transition-all group ${hubArea ? "border-[#facc15]/40" : "border-zinc-800"}`}>
+        {opportunityCards.map((card) => (
+          <Link key={card.id} href={card.href} className="w-full min-w-0 bg-zinc-900/30 border border-zinc-800 p-6 sm:p-8 rounded-[2.5rem] hover:border-zinc-500 transition-all group">
             <div className="flex justify-between items-start mb-6">
               <div className="p-4 bg-black rounded-xl border border-zinc-800 group-hover:border-zinc-700">
-                <hub.icon className="w-6 h-6" style={{ color: hub.color }} />
+                <Target className="w-6 h-6 text-[#00f2ff]" />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: hubArea ? "#facc15" : hub.color }}>{hubStatus}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#00f2ff]">{card.status}</p>
             </div>
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-black italic uppercase tracking-tighter mb-2 break-words">{hub.name}</h3>
-            <p className="text-[10px] text-zinc-500 font-bold italic mb-6 border-l-2 border-zinc-800 pl-4 break-words">{hubTask}</p>
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-black italic uppercase tracking-tighter mb-2 break-words">{card.name}</h3>
+            <p className="text-[10px] text-zinc-500 font-bold italic mb-6 border-l-2 border-zinc-800 pl-4 break-words">{card.detail}</p>
             <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
-              <span className="text-[9px] text-zinc-600 font-black uppercase">Launch_Node</span>
+              <span className="text-[9px] text-zinc-600 font-black uppercase">Open</span>
               <ChevronRight size={14} className="text-zinc-600 group-hover:translate-x-1 transition-all" />
             </div>
           </Link>
-          );
-        })}
+        ))}
       </div>
+
+      <section className="w-full min-w-0 bg-zinc-900/20 border border-zinc-800 p-6 sm:p-8 rounded-[2.5rem]">
+        <p className="text-[11px] font-black text-zinc-500 uppercase tracking-[0.4em] mb-6">Revenue Flywheel</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {flywheelRows.map((row) => (
+            <div key={row.name} className="min-w-0 bg-black/40 border border-zinc-800 p-5 rounded-[2rem]">
+              <p className="text-sm font-black italic uppercase break-words">{row.name}</p>
+              <p className="mt-3 text-2xl font-black">${row.current.toLocaleString()}</p>
+              <p className="text-[9px] font-black text-zinc-500 uppercase mt-1">Target ${row.target.toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* 4. STRATEGIC MILESTONES FOOTER */}
       <footer className="w-full min-w-0 bg-zinc-900/10 border border-zinc-800 p-6 sm:p-8 md:p-12 rounded-[3rem] grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12">

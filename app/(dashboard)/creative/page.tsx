@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client"; // FIXED: Correct absolute
 import { 
   Palette, Music, Globe, Plus, Star, Zap, ArrowLeft, Sparkles, 
   Brain, X, Trash2, Calendar, PenTool, Save, Cpu, Layout, 
-  ImageIcon, Terminal, Linkedin, Rocket, Instagram, Copy, 
+  ImageIcon, Terminal, Linkedin, Rocket, Instagram, 
   Fingerprint, ExternalLink, ArrowUpRight
 } from "lucide-react";
 import Link from "next/link";
@@ -235,21 +235,7 @@ export default function CreativeSpace() {
             <h3 className="font-black uppercase italic tracking-widest text-xs text-zinc-500 mb-8 flex items-center gap-3">
               <Fingerprint className="w-4 h-4 text-[#a855f7]"/> Identity Hub
             </h3>
-            <div className="space-y-6">
-              {[
-                { platform: "LinkedIn", handle: "/in/fullpreneur", bio: "Engineering Business Pillars | AI Strategy" },
-                { platform: "Octane Nation", handle: "@MasterCommand", bio: "The high-performance ecosystem for execution." },
-              ].map((social) => (
-                <div key={social.platform} className="p-6 bg-black border border-zinc-900 rounded-3xl group">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="font-black text-[10px] uppercase italic tracking-widest text-[#a855f7]">{social.platform}</span>
-                    <button onClick={() => navigator.clipboard.writeText(social.bio)} className="text-zinc-800 hover:text-white transition-all"><Copy className="w-4 h-4"/></button>
-                  </div>
-                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">{social.handle}</p>
-                  <p className="text-sm font-bold text-zinc-400 italic leading-snug">{social.bio}</p>
-                </div>
-              ))}
-            </div>
+            <p className="text-sm font-bold text-zinc-500 italic">No profiles saved for this account.</p>
           </div>
         </div>
       </div>
