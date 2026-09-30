@@ -22,12 +22,12 @@ const OPPORTUNITY_HUBS: {
   color: string;
   areas: QuizAreaId[];
 }[] = [
-  { name: "SBA FUNDING", path: "/opportunities/sba", status: "ACTIVE", task: "20 Leads Outreach", icon: Landmark, color: "#facc15", areas: ["revenue", "pipeline"] },
-  { name: "DOMINION", path: "/opportunities/dominion", status: "ACTIVE", task: "Content Batch", icon: Trophy, color: "#3b82f6", areas: ["pipeline", "execution"] },
-  { name: "PROPERTY", path: "/opportunities/property-improvement", status: "REVENUE", task: "Trimlight Leads", icon: Construction, color: "#22c55e", areas: ["revenue"] },
-  { name: "ALLIO SAAS", path: "/opportunities/allio", status: "BETA", task: "MVP Event Logic", icon: Activity, color: "#00f2ff", areas: ["execution"] },
-  { name: "OCTANE", path: "/opportunities/octane-nation", status: "AVON GEAR", task: "Event Blast", icon: Rocket, color: "#ef4444", areas: ["pipeline"] },
-  { name: "STRATEGY", path: "/vault", status: "CORE", task: "System Review", icon: ShieldCheck, color: "#a855f7", areas: ["accountability", "capacity", "fulfillment"] },
+  { name: "SBA FUNDING", path: "/opportunities/sba", status: "OPEN", task: "", icon: Landmark, color: "#facc15", areas: ["revenue", "pipeline"] },
+  { name: "DOMINION", path: "/opportunities/dominion", status: "OPEN", task: "", icon: Trophy, color: "#3b82f6", areas: ["pipeline", "execution"] },
+  { name: "PROPERTY", path: "/opportunities/property-improvement", status: "OPEN", task: "", icon: Construction, color: "#22c55e", areas: ["revenue"] },
+  { name: "ALLIO SAAS", path: "/opportunities/allio", status: "OPEN", task: "", icon: Activity, color: "#00f2ff", areas: ["execution"] },
+  { name: "OCTANE", path: "/opportunities/octane-nation", status: "OPEN", task: "", icon: Rocket, color: "#ef4444", areas: ["pipeline"] },
+  { name: "STRATEGY", path: "/vault", status: "OPEN", task: "", icon: ShieldCheck, color: "#a855f7", areas: ["accountability", "capacity", "fulfillment"] },
 ];
 
 export default function UltimateCommandCenter() {
@@ -60,15 +60,19 @@ export default function UltimateCommandCenter() {
   // --- CONSOLIDATED DATA SYNC ---
   useEffect(() => {
     const syncSystemData = async () => {
+      setQuizProfile(null);
+      setCrmStats({ fulfillment: 0, capacity: 0, totalLeads: 0, pipelineValue: 0 });
+      setHasPendingAudit(false);
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
         setOperator({ id: user.id, email: user.email ?? null });
 
         // Fetch both Appointments (Fulfillment/Capacity) and Leads (Revenue)
-        const [apptsRes, leadsRes] = await Promise.all([
+        const [apptsRes, crmRes, leadsRes] = await Promise.all([
           supabase.from('appointments').select('pillar').eq('user_id', user.id),
-          supabase.from('crm_leads').select('deal_value, pillar_tag').eq('user_id', user.id)
+          supabase.from('crm_leads').select('deal_value, pillar_tag').eq('user_id', user.id),
+          supabase.from('leads').select('value, deal_value').eq('user_id', user.id)
         ]);
 
         let calculatedFulfillment = 0;
@@ -80,16 +84,15 @@ export default function UltimateCommandCenter() {
           const total = apptsRes.data.length;
           const personalItems = apptsRes.data.filter(a => ['Personal', 'Creative'].includes(a.pillar)).length;
           calculatedFulfillment = Math.round((personalItems / total) * 100);
-
-          const businessItems = apptsRes.data.filter(a => 
-            ['SBA', 'Dominion', 'AlliO', 'Property', 'Octane'].includes(a.pillar)
-          ).length;
-          calculatedCapacity = Math.min(Math.round((businessItems / 40) * 100), 100);
+          calculatedCapacity = 0;
         }
 
         // Process Leads for Revenue Target
+        if (crmRes.data) {
+          totalRevenue += crmRes.data.reduce((acc, curr) => acc + (Number(curr.deal_value) || 0), 0);
+        }
         if (leadsRes.data) {
-          totalRevenue = leadsRes.data.reduce((acc, curr) => acc + (curr.deal_value || 0), 0);
+          totalRevenue += leadsRes.data.reduce((acc, curr) => acc + (Number(curr.deal_value ?? curr.value) || 0), 0);
         }
 
         let pendingLeft = false;
@@ -130,12 +133,14 @@ export default function UltimateCommandCenter() {
             scores,
             lowest: rankAreas(scores).slice(0, 3),
           });
+        } else {
+          setQuizProfile(null);
         }
 
         setCrmStats({
           fulfillment: calculatedFulfillment,
           capacity: calculatedCapacity,
-          totalLeads: leadsRes.data?.length || 0,
+          totalLeads: (crmRes.data?.length || 0) + (leadsRes.data?.length || 0),
           pipelineValue: totalRevenue
         });
 
@@ -201,24 +206,21 @@ export default function UltimateCommandCenter() {
           )}
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem]">
-              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Leads</p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">{crmStats.totalLeads}</p>
+              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Revenue</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">$0</p>
             </div>
             <div className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem]">
-              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Pipeline</p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">${crmStats.pipelineValue.toLocaleString()}</p>
+              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Lead pipeline</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black truncate">0</p>
             </div>
             <div className="w-full min-w-0 bg-zinc-900/40 border border-zinc-800 p-5 rounded-[2rem]">
               <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Status</p>
-              <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#00f2ff] truncate">Awaiting audit</p>
+              <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#00f2ff] truncate">Empty</p>
             </div>
           </div>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <Link href="/quiz" className="inline-flex items-center justify-center px-8 py-4 bg-[#00f2ff] text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em]">
-              {hasPendingAudit ? "Retry audit save" : "Take the audit"}
-            </Link>
-            <Link href="/quiz" className="inline-flex items-center justify-center px-8 py-4 bg-zinc-900 border border-zinc-800 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em]">
-              Re-take the audit
+          <div className="mt-10">
+            <Link href="/quiz" className="inline-flex items-center justify-center px-8 py-5 bg-[#00f2ff] text-black rounded-2xl font-black uppercase text-[11px] sm:text-xs tracking-[0.15em] sm:tracking-[0.2em]">
+              Take the Diagnostic Audit
             </Link>
           </div>
         </div>
@@ -327,8 +329,8 @@ export default function UltimateCommandCenter() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full min-w-0">
         {hubs.map((hub, i) => {
           const hubArea = hub.areas.find((id) => lowestIds.has(id));
-          const hubTask = hubArea ? focusForArea(hubArea, quizProfile.responses).task : hub.task;
-          const hubStatus = hubArea ? "FOCUS" : hub.status;
+          const hubTask = hubArea ? focusForArea(hubArea, quizProfile.responses).task : "No assignments yet";
+          const hubStatus = hubArea ? "FOCUS" : "OPEN";
           return (
           <Link key={i} href={hub.path} className={`w-full min-w-0 bg-zinc-900/30 border p-6 sm:p-8 rounded-[2.5rem] hover:border-zinc-500 transition-all group ${hubArea ? "border-[#facc15]/40" : "border-zinc-800"}`}>
             <div className="flex justify-between items-start mb-6">

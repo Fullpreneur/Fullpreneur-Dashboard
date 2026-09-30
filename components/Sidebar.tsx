@@ -32,6 +32,12 @@ export default function Sidebar() {
   const supabase = createClient();
 
   const handleLogout = async () => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch {
+      /* storage can be unavailable in private contexts */
+    }
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();

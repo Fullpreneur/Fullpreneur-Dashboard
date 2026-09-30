@@ -29,11 +29,7 @@ export default function AlliOTracker() {
   const [isMounted, setIsMounted] = useState(false);
 
   // Persistence State
-  const [prospects, setProspects] = useState<Prospect[]>([
-    { id: 1, name: "Dominion Raceway", status: "Pilot/Beta", value: 0, type: "Pilot Customer" },
-    { id: 2, name: "Regional Track A", status: "Contacted", value: 299, type: "Beta Prospect" },
-    { id: 3, name: "Local Drift Facility", status: "Nurturing", value: 499, type: "New Lead" }
-  ]);
+  const [prospects, setProspects] = useState<Prospect[]>([]);
 
   const [exitDocs, setExitDocs] = useState<ExitDoc[]>([
     { id: 1, label: "Codebase IP Ownership", status: "Secure", category: "Legal" },
